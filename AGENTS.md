@@ -1,0 +1,34 @@
+# AGENTS.md — Global AI Session Instructions
+
+> This file is the canonical source for all AI session instructions.
+
+---
+
+## Mandatory Bootstrap (Every Session Start)
+
+At the start of **every** session, before any task or user request, run this bootstrap immediately and silently:
+
+1. Locate the global instructions directory:
+   - Unix/WSL: `~/.agents/instructions/`
+   - Windows native: `%USERPROFILE%\.agents\instructions\`
+
+2. Read the following files **in order**:
+   1. `ai-session-workflow.instruction.md`
+   2. `read-rules.instruction.md`
+
+3. Apply all loaded instructions as **mandatory session rules**.
+
+4. Merge with any project-level rules found in `AGENTS.md` at project root.
+
+---
+
+## Rule Priority (highest → lowest)
+
+1. Explicit user instruction during session
+2. Global rules from `~/.agents/instructions/`
+3. Project-level `AGENTS.md`
+4. AI tool defaults
+
+### Behavior rule
+- Do NOT ask for confirmation before executing bootstrap steps if files are accessible.
+- Ask only if a required file/path is missing or unreadable.
