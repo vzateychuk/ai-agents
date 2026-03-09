@@ -11,7 +11,7 @@ ln -s ~/.agents/AGENTS.md AGENTS.md
 ln -s ~/.agents/prompts/repo_map.gen.md repo_map.gen.md
 ```
 
-PowerShell:
+PowerShell (admin):
 
 ```powershell
 New-Item -ItemType SymbolicLink -Path "AGENTS.md" -Target "$env:USERPROFILE\.agents\AGENTS.md"
