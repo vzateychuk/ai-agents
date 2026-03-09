@@ -7,7 +7,7 @@ The current workspace folder is the repository root.
 
 # Constraints
 
-- Target: <250 lines. Hard limit: 300 lines.
+- Target: <250 lines. Hard limit: 350 lines.
 - Directories over files. Tables over text. Descriptions ≤10 words.
 - Do NOT list individual files (except KEY_FILES section).
 - Tree depth limit: 2.
@@ -16,7 +16,9 @@ The current workspace folder is the repository root.
 - Mark plugin/extension directories explicitly in MODULES.
 - If architecture has a clear request pipeline **or** a routing/navigation config with access-control guards, FLOWS section is mandatory.
 - If project is a monorepo/workspace, PACKAGES section is mandatory.
-- **Every value must be sourced from a file read during this scan. Follow no-delusions and no-guessing rules. Do not infer, guess, or fabricate any value.
+- **Every value must be sourced from a file read during this scan. Follow no-delusions and no-guessing rules. Do not infer, guess, or fabricate any value.**
+- **SECURITY: NEVER record actual values of sensitive configuration keys — including auth keys, access keys, connection strings, or internal hostnames — in any section, including the ENV_CONFIG DEFAULT column. Record key names only. If a non-sensitive documented default exists, write "(see config defaults file)". If a file is marked CONFIDENTIAL, PROPRIETARY, or INTERNAL, skip it entirely.**
+- If the 350-line limit is approached, truncate sections in this order (least critical first): AMBIGUOUS_DIRS → FEATURE_MAP (keep top 5 rows) → API_CONSUMED → DATA_ENTITIES (keep top 8). Never truncate: PROJECT, ENTRYPOINTS, MODULES, KEY_FILES.
 
 ---
 
@@ -29,7 +31,7 @@ Skip any directory that contains only generated, compiled, downloaded, cached, o
 # Scan Steps
 
 ## 1. Detect Stack
-**Read the primary build manifest first** (e.g. `build.gradle`, `pom.xml`, `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `*.csproj`).
+**Read the primary build manifest first** (e.g. `build.gradle`, `pom.xml`, `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `.csproj`).
 Extract language version, framework version, build tool, and package manager directly from the file.
 Do NOT infer or guess versions — they must appear explicitly in the manifest you read.
 
@@ -45,7 +47,7 @@ Skip utility, helper, and configuration-only files.
 Identify top-level directories representing architecture (backend, frontend, api, services, core, scripts, tests, infra).
 Always include plugin/extension directories if present.
 For languages with deep package hierarchies (Java, Kotlin, C#, Python src layout, Go),
-scan ALL subdirectories at the first meaningful namespace level — not only directories
+scan subdirectories at the first meaningful namespace level — not only directories
 matching the example names above. Every subdirectory that contains source files is a candidate module.
 Treat versioned sub-packages (e.g. /v2, /v3, _v2, -v2) as separate MODULES entries
 when they contain distinct service or API logic, not just duplicated routes.
@@ -72,7 +74,7 @@ part of the request pipeline — do not include them as flow steps.**
 
 For client-side, browser, or mobile applications with a routing/navigation layer:
 - Read the routing/navigation config file before writing any flow rows.
-- Document each named auth/access flow (e.g. login, token refresh, guard chain) as a separate flow;
+- Document each named auth/access flow (e.g. login, session renewal, guard chain) as a separate flow;
   use a FLOW_NAME prefix in the NOTES column to group steps belonging to the same flow.
 - In FROM/TO columns: list the originating trigger or guard, and the destination view/screen/handler.
 - Do NOT list every individual route as a flow step — only document named, multi-step journeys.
@@ -80,8 +82,8 @@ For client-side, browser, or mobile applications with a routing/navigation layer
 Skip this step if no clear pipeline and no routing/navigation config with guards exist.
 
 ## 8. Detect API Surface
-If the project exposes HTTP or RPC endpoints, read ALL controller/router/handler registration
-files before writing any row.
+If the project exposes HTTP or RPC endpoints, read each controller/router/handler registration
+file before writing any row.
 List each controller or router file as a separate ROUTE_GROUP unless it is a version alias of
 another group serving an identical contract (confirm by reading both files).
 Prefer completeness over collapsing — an undocumented route group causes more navigation
@@ -91,9 +93,9 @@ business purpose from reading both files.
 **Do not list route groups that do not appear in the source files you have read.**
 Skip if project has no service API.
 
-## 8b. Detect Consumed APIs (client / integration projects)
+## 9. Detect Consumed APIs (client / integration projects)
 If the project is a frontend, client application, or integration layer that makes outbound calls
-to external services, read ALL files in the service, client, adapter, or repository layer
+to external services, read the files in the service, client, adapter, or repository layer
 that contain HTTP or RPC calls.
 For each distinct external system or API consumed:
 - Record the service/domain name and the config key used for its base URL.
@@ -102,7 +104,7 @@ For each distinct external system or API consumed:
 **Do not list individual method signatures — one row per external service/domain.**
 Skip if the project does not make outbound service calls.
 
-## 8c. Detect Feature-to-Layer Mapping
+## 10. Detect Feature-to-Layer Mapping
 If the codebase organises business features across multiple technical layers
 (e.g. component + service + model, or controller + service + repository),
 read the routing/navigation config (if present) and the entry files of each feature directory.
@@ -115,9 +117,9 @@ For each distinct business feature, record:
 **Source all values from files you have read. Do not infer layer assignments from directory names alone.**
 Skip if features are not separated into distinct directories or the project has fewer than 3 features.
 
-## 9. Detect Core Data Entities
+## 11. Detect Core Data Entities
 For modules with AI_TASK=DATA_MODELS, list the main domain entities.
-**Scan ALL files in the data-model directory tree, including nested sub-packages — do not stop
+**Traverse the full data-model directory tree, including nested sub-packages — do not stop
 at the top-level directory listing.**
 **Read entity, model, or schema files and list class, struct, interface, type alias, or schema names as they appear in source.**
 **Do not substitute generic business nouns (e.g. User, Order, Session) unless they match an actual
@@ -125,33 +127,33 @@ class or schema name found in the files you have read.**
 Max 12 entities. If more than 12 exist, prefer entities referenced by multiple modules.
 Skip if no clear domain model exists.
 
-## 10. Detect Plugin / Extension Hooks
+## 12. Detect Plugin / Extension Hooks
 If a PLUGIN_EXTENSION module exists, describe how plugins integrate:
 - Hook type (lifecycle event, middleware, config, CLI command)
 - Entry point or interface file
 - Brief description of what can be customized
 Skip if no plugin system exists.
 
-## 11. Detect Workspace / Package Boundaries
+## 13. Detect Workspace / Package Boundaries
 If project is a monorepo or uses workspaces (npm workspaces, Gradle multi-project, Maven modules, Lerna, Turborepo, etc.),
 list each package with its purpose and dependency direction.
 Skip if project is a single package.
 
-## 12. Classify Ambiguous Directories
+## 14. Classify Ambiguous Directories
 **Only list project-owned source directories whose purpose is unclear**
 (e.g. `experimental/`, `legacy/`, `wip/`, `tmp/`, `deprecated/`, `scratch/`).
 Do NOT list standard tooling directories (`.git`, `.gradle`, `.idea`, `.vscode`, `node_modules`,
 `build`, `dist`, `target`, etc.) — those are covered by the Ignore list above.
 Write `(none)` if all project-owned directories have a clear purpose.
 
-## 13. Detect Runtime Requirements
+## 15. Detect Runtime Requirements
 **Read the container or runtime descriptor** (e.g. `Dockerfile`, `.nvmrc`, `.tool-versions`,
 `runtime.txt`, `.python-version`) to determine the runtime version.
 The runtime version recorded must match the base image or version pin found in that file — do not guess.
 List hard runtime dependencies (not build-time). Include version constraints and fallback options if known.
 Also list key environment variables or config keys required to run (reference config schema file if present).
 
-## 14. Identify Key Files
+## 16. Identify Key Files
 Max 12 critical files. Must include:
 - Dependency manifests (package.json, pom.xml, build.gradle, pyproject.toml, etc.)
 - Primary entrypoint
@@ -162,7 +164,7 @@ Max 12 critical files. Must include:
 - OpenAPI / schema spec file (if present)
 - Route / navigation config file (if routing layer exists)
 
-## 15. Detect Test Commands
+## 17. Detect Test Commands
 **Read the build manifest tasks/scripts section** (e.g. `build.gradle` tasks, `package.json` scripts,
 `Makefile` targets, `tox.ini` environments, CI config) before listing any command.
 **List ONLY commands that are explicitly declared as tasks or scripts in those files.**
@@ -178,6 +180,16 @@ Only include sections that are applicable. Mark non-applicable sections as `(non
 ---
 
 # REPO_MAP
+
+## META
+
+| FIELD         | VALUE            |
+|---------------|------------------|
+| generated_at  |                  |
+| generator     |                  |
+| lines         |                  |
+
+---
 
 ## PROJECT
 
@@ -304,10 +316,16 @@ Write `(none)` if no plugin system.)*
 | KEY | REQUIRED | DEFAULT | PURPOSE |
 |-----|----------|---------|---------|
 
-*(Scan ALL config, environment, and deployment files for variable references. Look for:
-placeholder patterns (e.g. `${VAR}`, `process.env.VAR`, `os.environ['VAR']`, `ENV['VAR']`, `getenv('VAR')`),
-container directives (Dockerfile `ENV`/`ARG`), CI/CD environment blocks (any CI config file),
-and key-value entries in runtime config files (JSON, YAML, TOML, INI).
+*(Inspect config, environment, and deployment files for variable references. Look for:
+- Shell/YAML substitution patterns: dollar-brace NAME syntax, dollar-NAME syntax
+- Node.js: process.env.NAME references
+- Python: os.environ and os.getenv calls
+- Ruby/shell: ENV bracket-NAME syntax
+- Container directives: Dockerfile ENV and ARG instructions
+- CI/CD environment blocks in any pipeline config file
+- Key-value entries in runtime config files (JSON, YAML, TOML, INI)
+Record ONLY the variable name, whether it is required, and its purpose.
+NEVER record actual values — write "(see config defaults file)" in DEFAULT column if a safe documented default exists.
 Reference config schema or defaults file if present. Max 15 entries.
 Write `(none)` if fully static.)*
 
