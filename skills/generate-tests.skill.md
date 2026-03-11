@@ -41,4 +41,11 @@ tags: testing, unit-test, integration-test, e2e-test
 
 ## Scope
 
-Apply framework-specific tools (JUnit, Jest, pytest, etc.) from the active agent. This skill defines principles only.
+Apply the testing framework from the active agent. This skill defines principles only.
+
+## Test Data Management
+
+- Prefer builder or factory functions over inline object literals for complex test data; they keep tests readable and resilient to model changes
+- Use deterministic, meaningful values in test data (e.g. a fixed user ID like `user-123`) rather than random values unless testing randomness explicitly
+- For integration tests, seed data in a setup hook and clean up in a teardown hook to keep tests isolated
+- Avoid sharing mutable state between tests; each test should set up its own data

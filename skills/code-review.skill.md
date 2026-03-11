@@ -50,8 +50,18 @@ Trigger on: "review this PR", "code review", "review changes", "check this PR", 
 - Appropriate test type (unit/integration/e2e) for the change
 
 ### Performance (when relevant)
+- No obvious N+1
 - No heavy work in hot paths (unbounded loops, sync I/O, excessive re-renders)
 - Large payloads or lists handled safely (truncation, pagination, virtualization)
+
+### Schema and Migrations (when DB changes are present)
+Apply **db-migrations** skill to review migration files included in the change.
+
+### Breaking Changes
+- Removed or renamed exported functions, types, or modules
+- Changed function signatures (added required parameters, changed return type)
+- Removed or renamed API endpoints or fields in response contracts
+- Any of the above require a major version bump or a deprecation notice
 
 ### Accessibility (when UI)
 - Semantic structure, focus, keyboard navigation where applicable

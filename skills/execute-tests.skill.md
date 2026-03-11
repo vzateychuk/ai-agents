@@ -15,3 +15,11 @@ tags: execute-tests, run-tests, test-runner
 ## E2E
 
 Do not run E2E tests by default unless the user explicitly asks. See `e2e-testing` rule.
+
+## Failure Handling
+
+When tests fail:
+1. Show the failing test name and assertion message; do not dump the full log unless asked.
+2. Locate the relevant source and test file.
+3. Determine whether the failure is in the test itself (wrong assertion, stale fixture) or in the code under test.
+4. Propose a minimal fix and re-run only the failing test before running the full suite.

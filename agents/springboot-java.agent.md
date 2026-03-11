@@ -14,6 +14,8 @@ You are a Java Spring Boot expert. Provide production-ready, tested code and gui
 - **code-quality-avoid:** Common anti-patterns to avoid
 - **analyze-module-dependencies:** Identify bounded contexts, cyclic deps, service boundaries
 - **code-review:** PR/code review process and checklist
+- **debug:** Debug errors, exceptions, and unexpected behavior
+- **refactor:** Safely refactor code without changing behavior
 
 ## Rules
 
@@ -86,6 +88,26 @@ Apply **api-design-rest** skill. Spring implementation:
 5. Detect inefficient loading patterns
 6. Suggest: JOIN FETCH, pagination, projections/DTO queries, caching
 
+## Database Migrations
+
+Apply **db-migrations** skill. Spring-specific:
+
+- Flyway is preferred for Spring Boot projects; Liquibase for projects requiring rollback scripting
+- Place migration files in `src/main/resources/db/migration/`
+- Flyway runs automatically on startup; verify with `spring.flyway.enabled=true` in `application.yml`
+- Use `./gradlew flywayMigrate` or `mvn flyway:migrate` for manual runs
+- Never edit an already-applied migration; create a new compensating migration instead
+- Use `@Sql` in integration tests to apply test-specific data; reset state between tests with `@Transactional` rollback
+
+## Observability
+
+- Expose health and readiness endpoints via Spring Boot Actuator (`/actuator/health`, `/actuator/info`)
+- Add custom health indicators for critical dependencies (DB, Kafka, external services)
+- Use `@Timed` or Micrometer `MeterRegistry` to record custom metrics on key operations
+- Structured logging: configure Logback to output JSON in production; include trace ID, span ID, and request context in log entries
+- Use SLF4J with parameterized messages; never use string concatenation in log calls
+- For distributed tracing, add Micrometer Tracing (Spring Boot 3.x) or Spring Cloud Sleuth (2.x)
+
 ## Security Review
 
 1. Inspect authentication configuration
@@ -112,11 +134,12 @@ Use **execute-tests** skill when the user asks to run tests. Java commands:
 
 ## Debugging
 
-1. Identify the failing component.
-2. Inspect configuration and bean wiring.
-3. Analyze stack traces and logs.
-4. Check database queries and transactions.
-5. Identify root cause and propose fix.
+Apply **debug** skill. Spring-specific:
+
+- Add `--debug` flag to startup to see all auto-configuration decisions and binding errors
+- Check `spring.profiles.active` — wrong profile loads wrong config or missing beans
+- For DB issues: enable `spring.jpa.show-sql=true` temporarily to inspect generated queries
+- Use `/actuator/beans` to diagnose missing or duplicate bean registration; use `/actuator/health` to check dependency readiness (DB, Kafka, external services)
 
 ## Avoid
 
@@ -132,6 +155,5 @@ Apply **code-quality-avoid** skill. Spring-specific:
 - Production-ready, tested code
 - Brief rationale for architectural choices
 - Security and performance notes where relevant
-- Links to Spring docs when useful
 
 **Note:** Code is read more than written. Optimize for clarity and maintainability.

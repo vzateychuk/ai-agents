@@ -19,7 +19,7 @@ tags: api, rest, http, endpoints
 ## Request/Response
 
 - Use DTOs or schemas; never expose internal entities directly
-- Validate input (Bean Validation, Joi, etc.)
+- Validate all input using the framework's validation mechanism
 - Support `Accept` and `Content-Type` headers
 
 ## Collections
