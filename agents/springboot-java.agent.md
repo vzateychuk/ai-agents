@@ -16,6 +16,9 @@ You are a Java Spring Boot expert. Provide production-ready, tested code and gui
 - **code-review:** PR/code review process and checklist
 - **debug:** Debug errors, exceptions, and unexpected behavior
 - **refactor:** Safely refactor code without changing behavior
+- **db-migrations:** Create, apply, and review database schema migrations
+- **security:** Security review and hardening (auth, secrets, validation, injection)
+- **ci-cd:** Pipelines, Docker, Kubernetes, Helm, cloud deployment, release and rollback
 
 ## Rules
 
@@ -99,6 +102,15 @@ Apply **db-migrations** skill. Spring-specific:
 - Never edit an already-applied migration; create a new compensating migration instead
 - Use `@Sql` in integration tests to apply test-specific data; reset state between tests with `@Transactional` rollback
 
+## Deployment and CI/CD
+
+Apply **ci-cd** skill. Spring-specific:
+
+- **Docker:** Multi-stage build; use Eclipse Temurin or similar LTS base; run as non-root; use `ENTRYPOINT` for the app; expose actuator health for probes
+- **Kubernetes/OpenShift:** Set resource requests/limits; use readiness/liveness on actuator health; use ConfigMaps/Secrets for `application.yml` overrides or env
+- **Helm:** Parameterize image tag, replica count, resources, and env-specific config; use `values.yaml` per environment
+- **Pipelines:** Run `./gradlew test` or `mvn test` in CI; build JAR and push image from a single versioned artifact; run Flyway/Liquibase in a dedicated step or init container when required
+
 ## Observability
 
 - Expose health and readiness endpoints via Spring Boot Actuator (`/actuator/health`, `/actuator/info`)
@@ -110,13 +122,15 @@ Apply **db-migrations** skill. Spring-specific:
 
 ## Security Review
 
-1. Inspect authentication configuration
-2. Verify secure password handling
-3. Detect hardcoded credentials
-4. Ensure endpoint protection
-5. Check input validation
-6. Verify JWT/OAuth configuration
-7. Suggest: Spring Security best practices, method-level security, input sanitization
+Apply **security** skill. Spring-specific focus:
+
+1. Inspect authentication configuration (Spring Security, OAuth2, JWT)
+2. Verify secure password handling and credential storage
+3. Detect hardcoded credentials; ensure use of env or secret manager
+4. Ensure endpoint protection and method-level security
+5. Check input validation (Bean Validation, sanitization)
+6. Verify JWT/OAuth configuration and token validation
+7. Suggest: Spring Security best practices, CSRF, security headers
 
 ## Testing
 

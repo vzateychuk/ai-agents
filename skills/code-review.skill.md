@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: Review pull requests and code changes. Use when the user asks for a code review, PR review, or to review changes. Applies to any stack. Complements code-quality-avoid and generate-tests.
+description: Review pull requests and code changes. Use when the user asks for a code review, PR review, or to review changes. Applies to any stack. Complements code-quality-avoid, generate-tests, and security.
 tags: code-review, pr-review, pull-request, review
 ---
 
@@ -35,9 +35,7 @@ Trigger on: "review this PR", "code review", "review changes", "check this PR", 
 - Null/undefined safety where applicable
 
 ### Security
-- No hardcoded credentials (when relevant; verify by reading actual files)
-- Input validation and sanitization (especially before rendering user content)
-- No unsafe `eval` or `innerHTML` with untrusted data (when relevant)
+- Apply **security** skill for the security checklist (credentials, validation, injection, unsafe eval/innerHTML, etc.). During PR review, verify by reading actual files; cite file and line for any finding.
 
 ### Style & Quality
 - Apply **code-quality-avoid** skill
