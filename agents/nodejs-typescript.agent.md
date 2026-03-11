@@ -48,8 +48,8 @@ Apply **api-design-rest** skill. Express implementation:
 - RESTful conventions (correct HTTP methods, status codes)
 - DTOs or typed request/response; never expose internal models directly
 - Pagination for collections (limit/offset or page/size)
-- Centralized error handling middleware
-- Validate input (Zod, Joi, or schema validation)
+  - Centralized error handling middleware
+  - Validate input using the project's validation library or schema mechanism
 
 ## Service Implementation
 

@@ -10,15 +10,6 @@ tags: code-review, pr-review, pull-request, review
 
 Trigger on: "review this PR", "code review", "review changes", "check this PR", "review diff", "проревьюй", "проверь PR".
 
-## MANDATORY: Rules Compliance
-
-**CRITICAL: Apply no-guessing and anti-delusions rules throughout the review process:**
-
-1. **Read actual file contents before making any claims about code issues**
-2. **Quote specific line numbers and code snippets when identifying problems**
-3. **Never infer file contents or assume issues exist without verification**
-4. **If you cannot read a file mentioned in changes, explicitly state "cannot verify" rather than guess**
-
 ## Process
 
 1. **Context:** Use `repo_map.md` if present to identify affected modules and their purposes (MODULES, AI_TASK, KEY_FILES).

@@ -6,10 +6,6 @@ tags: security, auth, secrets, validation, hardening
 
 # Security
 
-## When to Use
-
-Trigger on: security review, secure this code, check for vulnerabilities, auth implementation, secrets management, input validation, threat model, harden deployment, or when the user explicitly asks about security.
-
 ## Process
 
 1. **Identify trust boundaries** — where untrusted input enters (HTTP, messages, files, env). Map data flow from entry to storage or external calls.

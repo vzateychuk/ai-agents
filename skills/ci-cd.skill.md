@@ -1,14 +1,10 @@
 ---
 name: ci-cd
-description: CI/CD pipelines, build, release, and deployment. Use when working on pipelines, Docker, Helm, Kubernetes, OpenShift, cloud deployment (AWS, GCP, Azure), or release and rollback strategies. Applies to any stack.
-tags: ci, cd, pipeline, docker, kubernetes, helm, openshift, deployment, aws
+description: CI/CD pipelines, build, release, and deployment. Use when working on pipelines, Dockerfile, Docker, Helm, Kubernetes, OpenShift, cloud deployment (AWS, GCP, Azure), release and rollback strategies, or when setting up or fixing deployment and automation. Applies to any stack.
+tags: ci, cd, pipeline, docker, kubernetes, helm, openshift, deployment
 ---
 
 # CI/CD and Deployment
-
-## When to Use
-
-Trigger on: pipeline, CI/CD, deploy, Dockerfile, Helm chart, Kubernetes, K8s, OpenShift, AWS/GCP/Azure deployment, release, rollback, build stage, or when the user asks to set up or fix deployment or automation.
 
 ## Process
 
@@ -69,6 +65,6 @@ Trigger on: pipeline, CI/CD, deploy, Dockerfile, Helm chart, Kubernetes, K8s, Op
 
 This skill defines the **process and checklist only**; it is technology-agnostic and reused by multiple agents.
 
-- **DevOps agent:** For pipeline review and deployment design (OpenShift, Helm, Harness, Ansible, GitHub Actions, DockerHub, dev/UAT/prod), the **DevOps** agent applies this skill and provides tool-specific expertise. Use that agent when the primary task is pipelines, containers, or deployment.
+- **DevOps agent:** For pipeline review and deployment design (OpenShift, Helm, Harness, Ansible, GitHub Actions, DockerHub, Terraform, cloud platforms), the **DevOps** agent applies this skill and provides tool-specific expertise. Use that agent when the primary task is pipelines, containers, or deployment.
 - **Application agents (e.g. SpringBoot, NodeJS-TypeScript):** They reference this skill for in-repo deployment guidance (Docker, K8s, Helm) when the user works on app code and deployment in the same context.
 - Tool-specific syntax (e.g. GitHub Actions, Harness, Dockerfile, Helm chart structure) comes from the active agent or the project's existing files; this skill does not prescribe tools.

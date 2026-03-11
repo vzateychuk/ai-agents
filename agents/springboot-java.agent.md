@@ -109,7 +109,7 @@ Apply **ci-cd** skill. Spring-specific:
 - **Docker:** Multi-stage build; use Eclipse Temurin or similar LTS base; run as non-root; use `ENTRYPOINT` for the app; expose actuator health for probes
 - **Kubernetes/OpenShift:** Set resource requests/limits; use readiness/liveness on actuator health; use ConfigMaps/Secrets for `application.yml` overrides or env
 - **Helm:** Parameterize image tag, replica count, resources, and env-specific config; use `values.yaml` per environment
-- **Pipelines:** Run `./gradlew test` or `mvn test` in CI; build JAR and push image from a single versioned artifact; run Flyway/Liquibase in a dedicated step or init container when required
+- **Pipelines:** Run tests in CI; build JAR and push image from a single versioned artifact; run migrations in a dedicated step or init container when required (apply **db-migrations** skill)
 
 ## Observability
 
