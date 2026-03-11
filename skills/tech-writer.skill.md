@@ -1,6 +1,6 @@
 ---
 name: tech-writer
-description: Technical documentation principles for architectural, developer, instructions, tutorials, GitHub docs. Use when writing technical docs (README, guides, tutorials, etc.). Brevity, maximum content, informal professional tone. Applies to any stack. Complements docs-no-emoji and human-like-writing rules.
+description: Technical documentation principles for any doc type. Use when writing, updating, reviewing, or improving technical docs — README, developer guide, API docs, quick start, tutorial, troubleshooting guide, runbook, architecture doc; when documenting a feature, module, or service; when asked to improve clarity, structure, or tone of existing documentation. Brevity, maximum content, informal professional tone. Applies to any stack. Complements docs-no-emoji and human-like-writing rules.
 tags: docs, documentation, writing, readme, guides
 ---
 
@@ -18,6 +18,7 @@ tags: docs, documentation, writing, readme, guides
 - Start with "why" before "how"; use progressive disclosure (simple to complex).
 - Active voice; direct address ("you"); clear transitions between sections.
 - Use concrete examples over abstract explanations.
+- Adapt structure and depth to the document type: a README is scannable and brief; a developer guide is comprehensive; a runbook is step-by-step and unambiguous.
 
 ## Audience
 
@@ -28,9 +29,9 @@ tags: docs, documentation, writing, readme, guides
 
 ## Technical Accuracy
 
-- Verify code examples and commands; ensure version numbers and dependencies are current.
-- Cross-reference official sources; note platform-specific assumptions.
-- Avoid security issues or outdated practices in examples.
+- Verify code examples and commands against the project's actual source and build manifests.
+- Use version numbers and dependency names from the project's declared manifests; do not invent or guess versions.
+- Avoid security issues in examples; note platform-specific assumptions explicitly.
 
 ## Avoid
 
@@ -40,8 +41,10 @@ tags: docs, documentation, writing, readme, guides
 
 ## Quality Check
 
-- Clarity, accuracy, completeness; readers can find what they need and apply it; sources cited.
+- Code examples include language, prerequisites, and expected output where relevant
+- All steps can be followed by the target audience without missing context
+- No undefined terms; acronyms expanded on first use
+- Do not generate external URLs unless explicitly provided or present in the project; use relative paths for internal links
+- Document answers the question a reader arrives with; no orphan sections
 
-## Scope
-
-Technology agnostic. Document structure and format come from the project or the active agent; this skill defines principles only.
+Applies to any technology stack. Document structure and format come from the project or the active agent.
