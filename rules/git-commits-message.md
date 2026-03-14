@@ -1,3 +1,8 @@
+---
+name: git-commits-message
+description: Commit message format and forbidden content (no AI mentions)
+---
+
 # Git Commit Message Rules
 
 ## CRITICAL RULES - MUST FOLLOW

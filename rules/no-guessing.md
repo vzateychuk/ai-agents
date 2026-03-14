@@ -1,4 +1,5 @@
 ---
+name: no-guessing
 description: Never guess or infer values — only write what is confirmed from source
 alwaysApply: true
 ---

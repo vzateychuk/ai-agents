@@ -1,6 +1,7 @@
 ---
 name: clarify-before-planning
 description: CRITICAL. Before generating any implementation plan, roadmap, or task breakdown, asks clarifying questions when details are unclear. Ensures every acceptance criterion can be addressed. Use when the user requests a plan, roadmap, implementation steps, task breakdown, or when acceptance criteria are mentioned.
+alwaysApply: true
 ---
 
 # Clarify Before Planning

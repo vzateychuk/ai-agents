@@ -1,6 +1,10 @@
-# Anti-Delusions Rule
+---
+name: anti-delusions
+description: Reduce hallucinations by grounding responses in verifiable context
+alwaysApply: true
+---
 
-Reduce hallucinations by grounding responses in verifiable context. Follow these directives:
+# Anti-Delusions Rule
 
 ## 1. Ground in sources
 

@@ -1,1 +1,4 @@
 # .gitignore
+.cursor/
+.idea/
+.vscode/

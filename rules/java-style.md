@@ -1,7 +1,7 @@
 ---
+name: java-style
 description: Java code style — prefer Apache Commons when available
 globs: "**/*.java"
-alwaysApply: false
 ---
 
 # Java style

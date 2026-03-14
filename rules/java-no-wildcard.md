@@ -1,7 +1,7 @@
 ---
+name: java-no-wildcard
 description: No wildcard imports; use explicit class imports only
 globs: "**/*.java"
-alwaysApply: false
 ---
 
 # No Wildcard Imports

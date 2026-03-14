@@ -20,9 +20,11 @@ New-Item -ItemType SymbolicLink -Path "repo_map.gen.md" -Target "$env:USERPROFIL
 
 Execution order in AI session:
 
-1. Execute `AGENTS.md`.
+1. Execute `AGENTS.md` (loads instructions + common rules).
 2. Execute `repo_map.gen.md` to generate/update `repo_map.md`.
+3. Select an agent when needed (loads agent-specific rules).
 
-Available prompt:
+Available prompts:
 
-- `repo_map.gen.md` - Generate `repo_map.md` as an AI repository index.
+- **`repo_map.gen.md`** — Generates `repo_map.md`, the navigation index for AI to find modules, flows, API surface, and key files in the repository.
+- **`repo_map.infra.gen.md`** — Generates `repo_map.infra.md`, the infrastructure reference (runtime, env config, external APIs, plugins, packages) — use when working on deployment, onboarding, or integrations.

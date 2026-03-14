@@ -1,8 +1,6 @@
 ---
-name: no-emoji
+name: docs-no-emoji
 description: STRICT. Never use emoji, Unicode symbols, or graphical characters in documents, code comments, or documentation. Use plain text labels instead.
-globs:
-alwaysApply: true
 ---
 
 # No Emoji Policy

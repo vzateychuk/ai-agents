@@ -1,8 +1,6 @@
 ---
 name: consistency
 description: Maintain consistent formatting within documents. Use same style for similar elements, follow existing patterns when updating or creating content.
-globs:
-alwaysApply: true
 ---
 
 # Consistency

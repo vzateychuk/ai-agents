@@ -1,8 +1,6 @@
 ---
 name: human-like-writing
 description: Generated documents should read as if written by a human. Use natural language, avoid robotic phrasing, maintain appropriate tone for document type.
-globs:
-alwaysApply: true
 ---
 
 # Human-like Writing Style
