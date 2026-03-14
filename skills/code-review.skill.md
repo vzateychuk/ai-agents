@@ -8,7 +8,7 @@ tags: code-review, pr-review, pull-request, review
 
 ## When to Use
 
-Trigger on: "review this PR", "code review", "review changes", "check this PR", "review diff", "проревьюй", "проверь PR".
+Trigger on: "review this PR", "code review", "review changes", "check this PR", "review diff".
 
 ## Process
 

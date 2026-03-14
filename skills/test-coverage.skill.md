@@ -21,8 +21,6 @@ tags: coverage, analysis, gaps
 
 ## Output Format
 
-For composability with other agents or reports:
-
 - Gap summary as a table or numbered list (inline markdown).
 - Columns or fields: file, path/line, priority, recommended test focus.
 - Prioritized recommendations as a separate list.

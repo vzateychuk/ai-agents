@@ -11,7 +11,7 @@ tags: code-quality, anti-patterns, code-smells, review
 - **Empty catch blocks:** Always handle or log; never swallow errors
 - **Hardcoded credentials:** Use env vars, secrets manager, or config
 - **God classes:** Single responsibility; split large modules
-- **Missing transactions:** Ensure transactional boundaries where data consistency matters
+
 
 ## Structure
 
@@ -50,3 +50,10 @@ tags: code-quality, anti-patterns, code-smells, review
 - Avoid deep nesting (more than 2-3 levels); use early returns or guard clauses instead
 - Extract long boolean expressions into named variables or functions that express intent
 - Bad: a single condition combining 4-5 boolean checks inline — Good: extract to a named predicate like `isEligibleForPromotion()`
+
+## Test Code Specifics
+
+- Do not test private methods directly; test observable behavior through the public API
+- Do not replicate production logic inside a test; tests verify outcomes, not re-implement the algorithm
+- Do not mock what does not cross a boundary; mocking internals of the unit under test couples the test to implementation details
+- Avoid assertions on multiple unrelated behaviors in a single test; each test should have one clear reason to fail

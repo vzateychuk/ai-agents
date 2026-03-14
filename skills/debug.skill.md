@@ -25,6 +25,18 @@ Prefer isolating in a unit test when:
 - The bug is in business logic
 - The reproduction path through the full stack is slow or requires external services
 
+## Intermittent (Flaky) Failures
+
+When a test passes locally but fails in CI, or fails inconsistently across runs:
+
+1. Check for shared mutable state between tests — a previous test may be polluting the environment.
+2. Check for timing dependencies — async operations without explicit synchronization, wall-clock assertions, or sleep-based waits.
+3. Check for external service calls in unit tests — these should not exist; remove or mock them.
+4. Check for parallelism issues in CI — tests running concurrently may conflict on shared resources (DB, files, ports).
+5. Apply **assertion-quality** skill's Flakiness section for fixes.
+
+Do not assume a race condition in production code until test isolation issues are ruled out.
+
 ## Scope
 
 Framework-specific signals and tooling come from the active agent.

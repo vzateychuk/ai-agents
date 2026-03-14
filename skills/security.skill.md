@@ -76,3 +76,14 @@ tags: security, auth, secrets, validation, hardening
 ## Scope
 
 Stack-specific implementation (e.g. Spring Security, Passport, OAuth provider) comes from the active agent. This skill defines the review process and categories only.
+
+## When Used for Test Design
+
+When invoked from a QA context to design security tests (not to audit production code), apply only these categories:
+
+- **Authentication:** Write tests that verify unauthenticated requests are rejected
+- **Authorization:** Write tests for each role/scope boundary (valid and invalid)
+- **Input Validation:** Write tests for invalid, boundary, and malformed input values
+- **Output and Data Exposure:** Verify error responses do not leak stack traces or internal paths
+
+Skip: Cryptography, Transport/Network, Dependencies, Audit/Logging — these are production code concerns, not test design concerns.

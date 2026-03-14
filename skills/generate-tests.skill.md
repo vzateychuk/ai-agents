@@ -38,6 +38,7 @@ tags: testing, unit-test, integration-test, e2e-test
 
 - `should_expectedBehavior_whenCondition` or `methodName_scenario_expectedResult`
 - Be explicit about the scenario and outcome
+- Choose one convention per project and apply consistently; default to `methodName_scenario_expectedResult` for OOP languages
 
 ## Scope
 
