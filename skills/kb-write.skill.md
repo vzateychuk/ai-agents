@@ -1,15 +1,13 @@
----
-name: kb-write
-description: Create or update .knowledge/ entries and index.yaml rows. Use when the user asks to create or update a KB entry (tasks, bugs, config, deployment, behavior, decisions).
-tags: knowledge-base, write, create, update
----
-
 # kb-write.skill.md
 
 ## Purpose
 
 Create or update a knowledge base entry on behalf of `kb-expert`.
 Load this skill when the developer requests a new entry or an update to an existing one.
+
+Entries are the units of RAG context — they are retrieved by `kb-lookup` and
+injected into the primary agent's reasoning. The quality of future AI answers
+depends directly on the quality of entries written here.
 
 ---
 
@@ -22,8 +20,11 @@ New knowledge, no existing entry for this topic.
 Existing entry needs correction, extension, or version increment.
 
 Mode is determined by `kb-expert` from context before loading this skill.
-If ambiguous, `kb-expert` asks the developer:
-> "Found existing entry [ID]. Create a new entry or update the existing one?"
+Mode is determined by ID match:
+- Exact ID match found in `index.yaml` → `mode: update` automatically
+- No match found → `mode: create`
+- Ambiguous (topic overlap but different ID) → ask the developer:
+  > "Found related entry [ID] on a similar topic. Update it or create a new entry?"
 
 ---
 
@@ -36,9 +37,9 @@ If the developer provided a tracker ticket ID (`JIRA-1234`, `ALFA-32867`, `OCRV-
 
 Otherwise:
 → read `.knowledge/index.yaml`
-→ find the highest existing KB prefix-id for the target directory
+→ find the highest `kb-NNN` value across ALL entries in index.yaml
 → increment by 1, zero-pad to 3 digits
-→ example: highest `bug-011` → new ID is `bug-012`
+→ example: highest `kb-041` → new ID is `kb-042`
 
 ### Step 2 — Determine the target directory
 
@@ -58,15 +59,15 @@ Infer category from context. When unclear, ask the developer to confirm.
 | Field         | How to populate                                                                                     |
 |---------------|-----------------------------------------------------------------------------------------------------|
 | `id`          | From Step 1.                                                                                        |
-| `category`    | From Step 2. Never inferred without confirmation.                                                   |
 | `version`     | Always `1` for new entries.                                                                         |
 | `tags`        | Generate covering all four dimensions (see Tag checklist below). Minimum 4 tags.                   |
-| `triggers`    | 2–4 natural-language symptom phrases as the user would report them. Include non-English if relevant. Required for `bugs` and `behavior`. |
+| `triggers`    | 2–4 natural-language symptom phrases as the user would report them. Include non-English if relevant. Required for all categories — primary lookup target in index.yaml. |
 | `date`        | Today's date in `YYYY-MM-DD`.                                                                       |
 | `author`      | Always `ai-assisted`.                                                                               |
-| `component`   | Name of the service, module, or infrastructure unit this entry belongs to. Required in index.yaml. |
-| `issue_title` | Verbatim ticket title if ID is a tracker ticket. Omit otherwise.                                   |
-| `related`   | Ask the developer: "Is this related to any previous entry? If yes, provide the ID(s)." Populate only from explicit answer. Never guess. Omit if none. |
+| `component`   | List of services, modules, or infrastructure units this entry belongs to. Use list syntax even for one value. Required in index.yaml. Ask the developer if the entry spans multiple services. |
+| `subject` | Verbatim ticket title if ID is a tracker ticket. Omit otherwise.                                   |
+| `summary`   | One sentence describing what this entry is about. Required — first field read during RAG injection and tiebreaker during lookup.                           |
+| `related`   | Ask the developer: "Is this related to any previous entry? If yes, provide the ID(s)." Populate only from explicit answer. Never guess. Omit if none.    |
 
 #### Tag checklist — verify before proposing
 
@@ -94,6 +95,12 @@ Fill in what is known. A partial entry with accurate content is more useful
 than a complete entry with guessed or placeholder content.
 Missing sections can be filled in later via update mode.
 
+**Self-contained rule:** write each entry as if the AI reading it has no other
+context about the project. Do not write "see kb-001 for details" without
+including the relevant detail here. Do not assume the reader knows the system
+architecture. The entry will be injected as RAG context in isolation — vague
+cross-references do not help the AI formulate a correct answer.
+
 | Category   | Recommended sections                             |
 |------------|--------------------------------------------------|
 | tasks      | Problem, Solution (with file:line refs), Notes   |
@@ -112,13 +119,17 @@ Proposed entry: tasks/JIRA-4821.md
 ─────────────────────────────────
 ---
 id: JIRA-4821
-category: tasks
 version: 1
-tags: [missing-feature, user-list, user-service, manage-user, user-search]
-triggers: ["email search missing", "нет поиска по email", "cannot find user by email"]
+component: [user-service]
+summary: "Added email search field to user management via CisUsersService and ManageUserComponent."
+tags: [missing-feature, user-list, email, user-search]
+triggers:
+  - email search missing
+  - нет поиска по email
+  - cannot find user by email
 date: 2026-03-15
 author: ai-assisted
-issue_title: "Add email search to user management screen"
+subject: "Add email search to user management screen"
 related: []
 ---
 
@@ -128,7 +139,7 @@ related: []
 ─────────────────────────────────
 Proposed index.yaml entry:
   - id: JIRA-4821
-    component: user-service
+    component: [user-service]
     related: []
     triggers:
       - email search missing
@@ -138,6 +149,14 @@ Proposed index.yaml entry:
       - user-list
       - email
       - user-search
+```
+
+Before presenting, verify the draft passes the RAG quality check:
+```
+□ summary is present and is one clear sentence — sufficient to answer simple questions alone
+□ body is self-contained — does not rely on reading other entries to be useful
+□ Solution / Fix / Resolution section includes file paths or commands, not vague descriptions
+□ triggers are present and cover how a developer would describe this problem, not how it is named internally
 ```
 
 Ask: "Confirm to write, or provide corrections?"
@@ -167,7 +186,7 @@ Do not remove existing content unless explicitly instructed.
 Increment `version` by 1.
 Update `date` to today.
 
-Also update `tags` and `triggers` in `index.yaml` row if they changed.
+Sync `triggers`, `tags`, `component`, and `related` in the `index.yaml` entry if any of them changed.
 
 ### Step 3 — Draft and present
 
@@ -180,7 +199,7 @@ Updated entry: bugs/ALFA-32867.md  (version 1 → 2)
 ─────────────────────────────────
 Updated index.yaml entry:
   - id: ALFA-32867
-    component: user-service
+    component: [user-service]
     related: [JIRA-4821]
     triggers:
       - list resets on back

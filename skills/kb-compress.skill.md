@@ -1,9 +1,3 @@
----
-name: kb-compress
-description: Audit and compress .knowledge/index.yaml when it grows large (~500+ entries). Use when the user asks to compress the KB index or audit the knowledge base.
-tags: knowledge-base, index, compress, audit
----
-
 # kb-compress.skill.md
 
 ## Purpose
@@ -11,6 +5,11 @@ tags: knowledge-base, index, compress, audit
 Audit and compress `index.yaml` when it grows large enough that token cost
 becomes a concern (~500+ entries). Identify low-signal content and propose
 pruning candidates for developer review.
+
+Compression also maintains RAG quality. When two entries describe the same
+problem, both may appear in a top-3 retrieval result — wasting a context slot
+that could carry a distinct and more useful entry. Merging near-duplicate entries
+improves retrieval precision, not just index size.
 
 Never delete or modify anything without explicit developer confirmation.
 
@@ -47,8 +46,45 @@ entry B triggers: ["docker build failure", "build fails arm64"]
 ```
 → flag as duplicate trigger candidates.
 
-For each group: propose keeping the entry with the richer tags and more
-recent `date`. Present both entries to the developer and ask which to keep.
+For each group: present both entries to the developer in full and ask explicitly:
+
+> "Entries [ID-A] and [ID-B] have near-identical triggers. In a RAG lookup
+>  both would appear together, wasting a context slot.
+>  — [ID-A] (v1, date): [one-line summary]
+>  — [ID-B] (v2, date): [one-line summary]
+>  Options:
+>    1. Merge into one entry — which one should be the base? (content from the
+>       other will be incorporated and the other deleted)
+>    2. Keep both — update triggers to differentiate them
+>    3. Delete one — which one is outdated?"
+
+Do not propose a preferred option. The developer decides.
+Do not proceed until an explicit choice is made.
+
+### Step 2b — Detect RAG slot waste
+
+Find pairs of entries where both triggers AND tags overlap significantly but
+the entries are not exact duplicates (different IDs, different content, but
+describe the same problem domain).
+
+These entries will consistently co-appear in top-3 retrieval for the same
+query, leaving only 1 slot for distinct context.
+
+For each such pair: present both entries in full and ask explicitly:
+
+> "Entries [ID-A] and [ID-B] overlap significantly in triggers and tags.
+>  In RAG retrieval both will consistently appear together, leaving only
+>  1 slot for distinct context.
+>  — [ID-A] (v?, date): [one-line summary]
+>  — [ID-B] (v?, date): [one-line summary]
+>  Options:
+>    1. Merge — which one should be the base?
+>    2. Keep both — differentiate triggers so they serve different queries
+>    3. Delete one — which one is less relevant today?"
+
+Do not propose a preferred option. The developer decides.
+
+---
 
 ### Step 3 — Detect redundant tags
 
@@ -62,7 +98,7 @@ representative of their dimension (symptom / module / tech / feature).
 
 ### Step 4 — Detect stale entries
 
-`date` and `version` are not in `index.yaml`; read them from each entry file's frontmatter (by ID from the index). Then flag entries where ALL of the following are true:
+Flag entries where ALL of the following are true:
 - `date` is older than 12 months
 - No other entry references this ID in its `related` list
 - `version` is still `1` (never updated)
@@ -136,3 +172,5 @@ tags.md:    29 tags      (was 34)
   without first removing or updating that reference.
 - Never apply changes in bulk without per-item developer confirmation.
 - If in doubt about an entry's value, keep it.
+- When merging entries, preserve all triggers and tags from both into the merged entry to maintain retrieval coverage.
+- After merging, verify the merged entry's summary remains a single clear sentence — it is the first thing the AI reads during RAG injection.

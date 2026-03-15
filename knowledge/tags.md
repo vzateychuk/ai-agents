@@ -1,6 +1,9 @@
 # Tag Dictionary
 
-Approved tags for `index.yaml` and entry frontmatter. Usage rules: project rules (kb-tags) and [knowledge-base.concept.md](knowledge-base.concept.md).
+Tags used in `index.yaml` and entry frontmatter must be chosen from this list.
+
+Before adding a new tag, search for a similar existing one.
+Add a new tag only if no suitable tag exists — append in alphabetical order.
 
 ---
 

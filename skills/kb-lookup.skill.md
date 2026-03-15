@@ -1,9 +1,3 @@
----
-name: kb-lookup
-description: Execute knowledge base lookup from .knowledge/index.yaml and entry files. Use when the user or primary agent needs KB info (deployment, config, bugs, tasks, behavior, decisions).
-tags: knowledge-base, lookup, search
----
-
 # kb-lookup.skill.md
 
 ## Purpose
@@ -19,7 +13,7 @@ A natural-language question or identifier from the developer. May be in any lang
 Examples:
 - "что мы знаем про проблему со сбросом пагинации?"
 - "find details on JIRA-4821"
-- "show everything caused by tsk-001"
+- "show everything caused by kb-001"
 - "how do we deploy to prod?"
 - "1234" (partial ticket number)
 
@@ -47,37 +41,53 @@ If input is a bare ID or partial number (e.g. "1234", "JIRA-1234"):
 
 ---
 
+### Early-exit rule
+
+After every step: if exactly 1 candidate remains → skip directly to Result.
+This rule applies uniformly across Steps 2, 3, and 4.
+
+---
+
 ### Step 2 — Scan TRIGGERS in index.yaml  [primary]
 
 Read `.knowledge/index.yaml`.
 Match extracted terms from Step 1 against the `triggers` field of each entry.
-Also match against `component` field if the question names a specific service or module.
+Also match against `component` list if the question names a specific service or module — any match in the list counts.
 Collect all matching entries → candidate set.
 
 If input was a bare ID or partial number:
-→ match against ID column exactly or by suffix (e.g. "1234" matches "JIRA-1234").
-→ if single match found, skip to Result.
+→ match against ID field exactly or by suffix (e.g. "1234" matches "JIRA-1234").
+→ apply early-exit rule.
+
+After step: apply early-exit rule.
+If 0 candidates → continue to Step 3.
+If >1 candidates → continue to Step 3.
 
 ---
 
 ### Step 3 — Scan TAGS in index.yaml  [narrow down]
 
-Run only if Step 2 produced 0 or more than 3 candidates.
+Run only if Step 2 produced 0 candidates or more than 1 candidate.
 
-- If 0 candidates: scan `tags` and `component` against all extracted terms → new candidate set.
-- If >3 candidates: scan `tags` and `component` within the Step 2 candidate set to reduce it.
+- If 0 candidates from Step 2: scan `tags` and `component` list against all extracted terms → new candidate set.
+- If >1 candidates from Step 2: scan `tags` and `component` list within that set to reduce it.
 
-If still 0 candidates after Step 3 → go to Step 6 (fallback).
+After step: apply early-exit rule.
+If still 0 candidates → go to Step 6 (fallback).
+If >1 candidates → continue to Step 4.
 
 ---
 
 ### Step 4 — Read SUMMARY from candidate files  [tiebreaker]
 
-Run only if Steps 2–3 left 2 or more candidates.
+Run only if Step 3 left 2 or more candidates.
 
 Read only the candidate entry files — not the full knowledge base.
 Compare SUMMARY content against the original question.
 Select the single best match. If two entries are equally relevant, return both.
+
+After step: apply early-exit rule.
+If >1 candidates remain equally relevant → return all of them, ranked by relevance.
 
 SUMMARY is never searched across the full knowledge base.
 It is used only as a tiebreaker between candidates already found in Steps 2–3.
@@ -119,24 +129,47 @@ Do NOT silently return an empty result without the above message.
 
 ## Output format
 
-Return matched entries in this order:
+Return at most 3 entries, ranked by relevance. If more candidates were found,
+note how many were omitted: "3 of 5 matches shown."
+
+Entries are returned as context for injection — not as search results to browse.
+The primary agent will prepend them to its reasoning before answering.
+
+For each entry return:
 1. Entry ID and file path
-2. Full entry content (frontmatter + body)
-3. If related chain was requested: chain diagram in plain text
+2. `summary` field (one line — allows primary agent to decide if full body is needed)
+3. Full entry content (frontmatter + body)
 
-Example single result:
+If the primary agent needs only `summary` to answer (simple factual question),
+it may skip reading the full body. For complex questions, full body is always used.
+
+Example output (single result):
 ```
-Found: ALFA-32867  (.knowledge/bugs/ALFA-32867.md)
-related: JIRA-4821
+Found 1 match (showing 1 of 1):
 
---- entry content below ---
+[ALFA-32867]  .knowledge/bugs/ALFA-32867.md
+summary: User list page size resets when navigating back due to missing state preservation in v2api pagination.
+
+--- full entry ---
 ...
 ```
 
-Example related chain:
+Example output (multiple results):
 ```
-Related chain for ALFA-32867:
-  ALFA-32867 (bugs)  ←  JIRA-4821 (tasks)
+Found 3 matches (showing 3 of 5):
+
+[ALFA-32867]  .knowledge/bugs/ALFA-32867.md
+summary: User list page size resets on back navigation.
+
+[JIRA-4102]  .knowledge/bugs/JIRA-4102.md
+summary: Auth client crashes on null grants array in update-client.
+
+[kb-008]  .knowledge/behavior/kb-008.md
+summary: RoleGuard checks scopes from JWT token, not from database.
 ```
 
-If multiple results returned, list them in order of relevance (best match first).
+If related chain was requested, append after entries:
+```
+Related chain for ALFA-32867:
+  ALFA-32867 (bugs)  ↔  JIRA-4821 (tasks)
+```

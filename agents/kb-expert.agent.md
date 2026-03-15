@@ -1,10 +1,3 @@
----
-name: kb-expert
-description: Sub-agent for project knowledge base (.knowledge/). Use when the user asks to find, create, or update KB entries, compress the index, or when the primary agent needs KB context for deployment, config, bugs, past tasks, or decisions.
-model: inherit
-rules: [kb-tags]
----
-
 # kb-expert.agent.md
 
 ## Identity
@@ -25,19 +18,29 @@ Do not re-implement skill logic inline.
 
 | Operation        | Skill file                               |
 |------------------|------------------------------------------|
-| Lookup / search  | `.knowledge/skills/kb-lookup.skill.md`   |
-| Create / update  | `.knowledge/skills/kb-write.skill.md`    |
-| Compress index   | `.knowledge/skills/kb-compress.skill.md` |
+| Lookup / search  | `~/.agents/skills/kb-lookup.skill.md`    |
+| Create / update  | `~/.agents/skills/kb-write.skill.md`     |
+| Compress index   | `~/.agents/skills/kb-compress.skill.md`  |
 
 ---
 
 ## Triggers and response
 
 Write operations always require explicit developer invocation.
-For read operations, you may be invoked automatically by the primary agent
-when KB context would materially improve its answer (see Auto-consult rule
-in the concept document). In that case you execute the lookup silently and
-return results to the primary agent without surfacing the mechanism to the developer.
+
+For read operations, the primary agent MUST invoke you automatically whenever
+the answer to a developer request is not immediately obvious from code and
+context alone. The knowledge base exists to augment the primary agent —
+consulting it is the default behaviour, not an optional step.
+
+When invoked automatically, you execute the lookup and return results to the
+primary agent. The primary agent then:
+- announces the lookup to the developer: "Checking the knowledge base..."
+- incorporates matched entries into its answer, citing entry IDs
+- explicitly states if nothing was found: "Nothing found in the knowledge base."
+
+The result — whether match or empty — is always visible to the developer.
+An empty result is a signal that a new KB entry may be worth creating.
 
 You may also be invoked explicitly by the developer at any time.
 
@@ -46,7 +49,7 @@ You may also be invoked explicitly by the developer at any time.
 Invocation examples:
 - "kb-expert: find details on JIRA-4821"
 - "kb-expert: что мы знаем про проблему со сбросом пагинации?"
-- "kb-expert: show everything caused by tsk-001"
+- "kb-expert: show everything caused by kb-001"
 - "kb-expert: 1234"
 
 Response:
@@ -71,7 +74,7 @@ Response:
 
 ---
 
-### Trigger 4 — Compress request
+### Trigger 3 — Compress request
 
 Invocation examples:
 - "kb-expert: compress index"
@@ -84,7 +87,7 @@ Response:
 
 ---
 
-### Trigger 3 — Task completion signal
+### Trigger 4 — Task completion signal
 
 Invocation examples:
 - "done", "task complete", "JIRA-5501 closed", "закончил с задачей"
@@ -92,14 +95,26 @@ Invocation examples:
 
 Response:
 1. Check `.knowledge/index.yaml` for an existing entry matching the task ID or topic.
-2a. If no related entry found, ask:
-    > "Task [ID] appears complete. Do you want to create a knowledge base entry?
-    >  If yes, briefly describe what was discovered or changed."
-2b. If a related entry exists, ask:
+2. Reconstruct a brief description of what was done from the current session
+   context: what problem was solved, what was discovered, what files changed.
+   Do not ask the developer to describe it — use what is already known.
+3a. If no related entry found:
+    > "Task [ID] appears complete. Based on our session, here is what I understood
+    >  was done:
+    >  [brief description reconstructed from context]
+    >  Shall I create a KB entry for this? Correct me if anything is wrong."
+3b. If exact ID match found in `index.yaml`:
+    → mode: update automatically, no question needed.
     > "Task [ID] appears complete. Found existing entry [ID].
-    >  Do you want to update it, or create a new entry?"
-3. If developer confirms and provides details: load `kb-write.skill.md` and proceed.
-4. If developer declines: acknowledge and do nothing.
+    >  Based on our session: [brief description]
+    >  I will update that entry. Correct me if anything is wrong."
+3c. If a related entry exists but ID does not match exactly:
+    > "Task [ID] appears complete. Found related entry [other-ID] on a similar topic.
+    >  Based on our session: [brief description]
+    >  Update that entry or create a new one?"
+4. If developer confirms (with or without corrections): incorporate any
+   corrections, load `kb-write.skill.md`, and proceed to draft.
+5. If developer declines: acknowledge and do nothing.
 
 Do not write any entry without an explicit affirmative response from the developer.
 
@@ -114,6 +129,28 @@ Do not write any entry without an explicit affirmative response from the develop
 - **Never modify files outside `.knowledge/`.** index.yaml and entry files only.
 - **Single responsibility.** If asked to do something outside KB operations,
   respond: "I handle knowledge base operations only. Please ask the primary agent."
+
+---
+
+## RAG injection rule
+
+When returning lookup results to the primary agent, return entries in a format
+ready for context injection — not as search results to browse, but as context
+to reason from.
+
+Return at most 3 entries per query, ranked by relevance. If more candidates
+were found, select the top 3 and note how many were omitted.
+
+For each returned entry, include:
+1. Entry ID and file path
+2. Full entry content (frontmatter + body)
+
+The primary agent then:
+- Prepends entries as "past experience context" before answering
+- References entry IDs explicitly in the answer
+- Uses only `summary` if the full body is not needed (reduces token cost)
+- If two entries conflict: presents both to the developer and asks which
+  reflects the current state before using either as context
 
 ---
 
@@ -137,17 +174,25 @@ Do not write any entry without an explicit affirmative response from the develop
 
 Entry files are named by their ID:
 - Tracker ticket ID if available: `tasks/JIRA-4821.md`
-- KB prefix-id otherwise: `bugs/bug-003.md`
+- `kb-NNN` otherwise: `bugs/kb-003.md`
 
 ---
 
 ## index.yaml column reference
 
-```
-| ID | RELATED | TRIGGERS | TAGS |
+```yaml
+- id: JIRA-4821
+  component: [user-service]
+  related: []
+  triggers:
+    - email search missing
+  tags:
+    - missing-feature
+    - user-list
 ```
 
-- `ID` — tracker ticket ID or KB prefix-id. Unique. Used as file name.
-- `RELATED` — space-separated IDs of entries that directly caused this one. Blank if none.
-- `TRIGGERS` — 2–4 natural-language symptom phrases. Primary search target.
-- `TAGS` — 4–6 typed keywords: symptom / module / tech / feature dimensions.
+- `id` — tracker ticket ID or `kb-NNN`. Unique. Used as file name.
+- `component` — list of services or modules this entry belongs to. Required. List syntax even for one value.
+- `related` — list of IDs of causally or thematically linked entries.
+- `triggers` — 2–4 natural-language symptom phrases. Primary search target.
+- `tags` — 4–6 keywords from `tags.md` only.

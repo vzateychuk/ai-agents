@@ -9,7 +9,6 @@ its trade-offs are.
 This document is the reference for creating AI instructions and rules to implement
 this concept in any project.
 
-**Schema version:** 1.1
 
 ---
 
@@ -30,34 +29,55 @@ This knowledge currently lives in people's heads, in Slack threads, in ticket
 comments, or is simply lost. Loading it all into an AI context on every session
 is wasteful and often impossible.
 
----
-
-## The Concept: Indexed Knowledge Base
-
-A file-based knowledge store with a flat index that allows an AI assistant to
-retrieve only the knowledge relevant to the current question, without loading
-everything into context.
+Even when a developer remembers that a similar problem was solved before, they
+cannot efficiently transfer that context to an AI assistant. The AI starts every
+session without memory of past decisions, past failures, or hard-won operational
+knowledge. It will repeat the same mistakes, ask the same clarifying questions,
+and miss non-obvious constraints — unless that knowledge is explicitly provided.
 
 ---
 
-## How It Differs from repo_map.md
+## The Concept: RAG for Project Experience
 
-These two artifacts are complementary and must not be merged.
+This knowledge base implements a lightweight **Retrieval-Augmented Generation**
+(RAG) pattern for project-specific experience.
 
-| Dimension           | repo_map.md                             | .knowledge/                                                |
-|---------------------|-----------------------------------------|------------------------------------------------------------|
-| What it describes   | Current code structure                  | Accumulated experience about the system                    |
-| Primary question    | Where is the code for X?                | How was X solved / why does X behave this way?             |
-| When AI reads it    | At the start of every session           | On explicit invocation of kb-expert sub-agent              |
-| Changes when        | Code structure changes                  | A task is completed, a bug is found, a quirk is discovered |
-| Always current      | Yes — must reflect the current codebase | Historical — entries are updated in place; git tracks versions                       |
-| Loaded into context | Always (session start)                  | Index always; entry files only for matched results         |
-| Typical size        | 200-400 lines, stays lean               | Grows unboundedly; index stays lean                        |
+The core idea: when a developer asks a question, the AI assistant does not answer
+from code and general knowledge alone. Instead, it first retrieves relevant
+knowledge entries — past task solutions, bug root causes, configuration quirks,
+architectural decisions — and **injects them as context** before formulating the
+answer. The developer's question is augmented with accumulated project experience.
 
-Rule of thumb:
-- `repo_map.md` answers: WHERE is the code, WHAT does each module do
-- `.knowledge/` answers: WHY was it changed, HOW was a problem solved,
-  WHAT are the runtime, deployment, or configuration quirks
+```
+Developer question
+        ↓
+kb-expert searches index.yaml
+        ↓
+Retrieves top-N relevant entries (max 3)
+        ↓
+Primary agent prepends entries as context
+        ↓
+Answer enriched with past project experience
+```
+
+This is distinct from a documentation system or a search engine. The knowledge
+base does not replace reading the code — it captures what the code does not say:
+why a decision was made, how a specific production issue was resolved, what
+configuration edge case caused a silent failure. These are the facts that make
+the difference between a generic answer and a correct answer for this project.
+
+Unlike vector-database RAG, this implementation requires no embeddings, no
+external services, and no GPU. The index is a YAML file. Retrieval is keyword
+matching on `triggers` and `tags`. This is sufficient for project-scale knowledge
+(up to ~500 entries) and works in any environment including air-gapped VDI.
+
+The implementation works with any AI assistant that has file-system access.
+It does not require vector databases, embeddings, semantic search, or any
+external services. The index is intentionally a single file — splitting it
+into per-category sub-indexes provides no benefit since search is by triggers
+and tags, not by category. The correct scaling strategy is index compression
+via `kb-compress.skill.md`, which prunes low-signal entries while preserving
+retrieval quality.
 
 ---
 
@@ -67,19 +87,19 @@ Rule of thumb:
 .knowledge/
 ├── index.yaml              <- compact index, the only file read during lookup
 ├── deployment/           <- deployment, Docker, Helm, CI/CD quirks
-│   ├── dep-001.md
-│   └── dep-002.md
+│   ├── kb-001.md
+│   └── kb-002.md
 ├── config/               <- environment variables, runtime config, secrets
-│   ├── cfg-001.md
-│   └── cfg-002.md
+│   ├── kb-003.md
+│   └── kb-004.md
 ├── bugs/                 <- known bugs, root causes, workarounds
-│   ├── bug-001.md            <- KB-id when no issue tracker id available
-│   └── JIRA-4102.md         <- issue tracker id used directly as filename
+│   ├── kb-005.md             <- kb-NNN when no tracker ticket
+│   └── JIRA-4102.md          <- tracker ticket id used directly as filename
 ├── tasks/                <- completed tasks: what changed and why
-│   ├── tsk-001.md
-│   └── tsk-002.md
+│   ├── kb-006.md
+│   └── kb-007.md
 ├── behavior/             <- non-obvious business logic, system behavior, edge cases
-│   └── bhv-001.md
+│   └── kb-008.md
 └── decisions/            <- architectural decision records (ADRs)
     ├── ADR-001-auth-provider.md
     └── ADR-002-pagination-model.md
@@ -104,25 +124,20 @@ tasks/JIRA-4821.md       id: JIRA-4821
 bugs/ALFA-32867.md       id: ALFA-32867
 ```
 
-**When no tracker ticket exists**: use a category-prefixed sequential number.
-
-| Prefix | Category   | Directory    |
-|--------|------------|--------------|
-| dep-   | deployment | deployment/  |
-| cfg-   | config     | config/      |
-| bug-   | bugs       | bugs/        |
-| tsk-   | tasks      | tasks/       |
-| bhv-   | behavior   | behavior/    |
-| ADR-   | decisions  | decisions/   |
+**When no tracker ticket exists**: use `kb-NNN` — a single global sequential
+number regardless of which directory it lives in. The category is inferred from the directory — it is not stored in the ID or in the entry frontmatter.
 
 ```
-bugs/bug-003.md          id: bug-003
-deployment/dep-001.md    id: dep-001
+bugs/kb-003.md           id: kb-003
+deployment/kb-001.md     id: kb-001
+decisions/kb-042.md      id: kb-042
 ```
 
-The category is inferred from the directory, not stored in the ID or in `index.yaml`.
-When adding a new category, choose a short unique prefix, add it to this table,
-and create the corresponding directory.
+To determine the next number: read `index.yaml`, find the highest `kb-NNN` value
+across all entries, increment by 1, zero-pad to 3 digits.
+
+When adding a new category, create the corresponding directory.
+No prefix table needed — the directory name carries the category.
 
 ---
 
@@ -138,7 +153,7 @@ schema_version: 1
 
 entries:
   - id: JIRA-4821
-    component: user-service
+    component: [user-service]
     related: []
     triggers:
       - email search missing
@@ -151,7 +166,7 @@ entries:
       - cis-users
 
   - id: ALFA-32867
-    component: user-service
+    component: [user-service]
     related: [JIRA-4821, JIRA-4102]
     triggers:
       - list resets on back
@@ -163,8 +178,8 @@ entries:
       - pagination
       - v2api
 
-  - id: dep-001
-    component: infrastructure
+  - id: kb-001
+    component: [infrastructure]
     related: []
     triggers:
       - docker build fails on arm
@@ -177,8 +192,8 @@ entries:
 ```
 
 Field rules:
-- `id` — tracker ticket ID if one exists, otherwise KB prefix-id. This is the only identifier.
-- `component` — explicit component or service name this entry belongs to. Improves retrieval precision.
+- `id` — tracker ticket ID if one exists, otherwise `kb-NNN`. This is the only identifier.
+- `component` — list of services, modules, or infrastructure units this entry belongs to. Multiple values allowed. Improves retrieval precision for component-scoped queries.
 - `related` — list of IDs of entries that are causally or thematically linked. Empty list if none.
 - `triggers` — 2–4 natural-language phrases as a user would report the problem.
   Include non-English phrases if the team is multilingual. Primary search target.
@@ -256,14 +271,15 @@ tags: [reset, back-nav, pagination, v2api, user-search]
 
 ### Component field
 
-`component` is a separate explicit field — not a tag — that names the service,
-module, or infrastructure unit an entry belongs to. It improves retrieval when
-the developer asks component-scoped questions ("what issues exist in user-service?").
+`component` is a separate explicit field — not a tag — listing the services,
+modules, or infrastructure units an entry belongs to. A single entry may span
+multiple components; all should be listed. It improves retrieval when the
+developer asks component-scoped questions ("what issues exist in user-service?").
 
 ```yaml
-component: user-service      # service or application module
-component: auth-guard        # specific class or middleware
-component: infrastructure    # for deployment/config entries with no single owner
+component: [user-service]                     # single component
+component: [user-service, cis-users-service]  # entry spans two services
+component: [infrastructure]                   # no single service owner
 ```
 
 `component` is required in `index.yaml`. In the entry frontmatter it is optional
@@ -280,20 +296,18 @@ Each knowledge file follows this structure:
 ```markdown
 ---
 id: JIRA-4821
-category: tasks
 version: 1
 tags: [missing-feature, user-list, user-service, manage-user, user-search]
 triggers: ["email search missing", "нет поиска по email", "cannot find user by email"]
 date: 2026-01-15
 author: ai-assisted / developer-name
-issue_title: "Add email search to user management screen"
+subject: "Add email search to user management screen"
 ---
 
 # and for an entry without a tracker ticket:
 
 ---
-id: bug-003
-category: bugs
+id: kb-003
 version: 1
 tags: [reset, back-navigation, user-list, pagination, v2api]
 triggers: ["list resets on back", "страница сбрасывается", "pagination lost on back button"]
@@ -315,6 +329,9 @@ Users could only be searched by username. Email search was missing.
 - Added email input in `ManageUserComponent`
   (src/app/components/user/manage-user/manage-user.component.ts:134)
 
+## Summary
+Added email field to SearchUserCriteria and wired it through CisUsersService and ManageUserComponent.
+
 ## Notes
 Backend v2 API supports email as a query param out of the box.
 No backend changes were required.
@@ -324,21 +341,21 @@ No backend changes were required.
 
 | Field         | Required    | Description                                                                                      |
 |---------------|-------------|--------------------------------------------------------------------------------------------------|
-| `id`          | yes         | Tracker ticket ID if available (`JIRA-1234`, `ALFA-32867`), otherwise KB prefix-id (`bug-003`). Used as the file name. |
-| `category`    | yes         | Category name matching the directory                                                             |
+| `id`          | yes         | Tracker ticket ID if available (`JIRA-1234`, `ALFA-32867`), otherwise `kb-NNN` (e.g. `kb-042`). Used as the file name. |
 | `version`     | yes         | Integer starting at `1`. Increment by 1 on every in-place update.                               |
 | `tags`        | yes         | Typed keywords covering symptom / module / tech / feature dimensions                            |
 | `date`        | yes         | Date of last update in `YYYY-MM-DD`                                                              |
 | `author`      | yes         | `ai-assisted` or developer name/handle                                                           |
-| `triggers`    | recommended | Natural-language symptom phrases; required for `bugs` and `behavior`                            |
-| `issue_title` | optional    | Verbatim short title of the ticket as written in the tracker. Omit if no tracker ticket.         |
-| `related`   | optional    | List of IDs of entries that directly caused or triggered this entry, e.g. `[JIRA-4821, bug-003]`. Omit if none. |
+| `triggers`    | yes         | Natural-language symptom phrases describing the problem as a user would report it. Primary lookup target in index.yaml. Without triggers, retrieval degrades to tags-only. |
+| `subject` | optional    | Verbatim short title of the ticket as written in the tracker. Omit if no tracker ticket.         |
+| `related`   | optional    | List of IDs of causally or thematically linked entries. Omit if none.                                            |
+| `summary`   | yes         | One sentence describing what this entry is about. First field read during RAG injection. Used as tiebreaker when multiple candidates match. Without summary, the AI has no fast signal for relevance ranking. |
 
 When the entry ID is a tracker ticket ID, a developer who remembers
 "we fixed something in ALFA-32867" can find the entry directly by ID.
-Entries without a tracker ticket use a KB prefix-id (`bug-003`, `dep-001`).
+Entries without a tracker ticket use `kb-NNN` format (`kb-003`, `kb-042`).
 
-Lookup scans in this order: `TRIGGERS` → `TAGS` → `SUMMARY` (candidates only) → `RELATED` chain (on request).
+Lookup scans in this order: `TRIGGERS` → `TAGS` → `SUMMARY` (candidates only, read from entry file) → `RELATED` chain (on request).
 `id` lookup is an exact or prefix match (e.g. "1234" matches "JIRA-1234").
 
 Sections used per category:
@@ -350,62 +367,33 @@ Sections used per category:
 | config     | Variable/Key, Purpose, Valid Values, Gotchas   |
 | deployment | Context, Issue, Resolution, Commands           |
 | behavior   | Observation, Explanation, Implications         |
+| decisions  | Context, Decision, Consequences               |
 
 This list is not exhaustive. New categories may introduce their own section
 structure; document it in the category's first entry and in this table.
+
+**Write entries as self-contained units.** Each entry must make sense when read
+in isolation by an AI that has no other context about the project. Do not write
+"see kb-001 for details" without including the relevant detail in the current
+entry. Do not assume the AI knows the system architecture. The goal is that
+reading the entry alone is sufficient to answer a question about this topic.
+
+This is essential for RAG: the entry is injected as context without any
+surrounding knowledge. Vague or reference-only entries do not augment the
+answer — they only add noise.
 
 ---
 
 ## Decision Records
 
-Architectural and design decisions are stored separately from operational knowledge.
-They capture context that never appears in bugs or tasks: why a technology was chosen,
-what alternatives were rejected, and what consequences are expected.
+Architectural and design decisions that capture context never visible in bugs or tasks:
+why a technology was chosen, what alternatives were rejected, what consequences are expected.
 
-```
-.knowledge/decisions/
-├── ADR-001-auth-provider.md
-└── ADR-002-pagination-model.md
-```
+Stored in `.knowledge/decisions/`. Use `kb-NNN` as the ID (same convention as all other entries). Optionally add a slug in the filename for human readability: `kb-042-auth-provider.md`.
+Frontmatter, indexing, and lookup follow the same rules as all other categories.
+Recommended sections: Context, Decision, Consequences.
 
-### ADR naming
-
-`ADR-NNN-short-slug.md` where NNN is a zero-padded sequential number.
-The slug is a brief kebab-case description of the decision.
-
-### ADR format
-
-```markdown
----
-id: ADR-001
-category: decisions
-version: 1
-date: 2026-01-10
-author: ai-assisted / developer-name
-component: infrastructure
-tags: [auth0, jwt, login, auth]
-triggers: ["why auth0", "почему не keycloak", "auth provider decision"]
-related: []
----
-
-# ADR-001: Use Auth0 as authentication provider
-
-## Context
-The system needs an external authentication provider.
-Keycloak and Auth0 were evaluated.
-
-## Decision
-Auth0 was selected due to managed infrastructure and existing team familiarity.
-
-## Consequences
-- No self-hosted auth infrastructure required.
-- Vendor dependency introduced.
-- clientId differs between sandbox and prod tenants (see cfg-001).
-```
-
-ADR entries are included in `index.yaml` with the same fields as other entries.
-They are searched by the same lookup algorithm. `kb-expert` creates and updates
-them via `kb-write.skill.md` using the `decisions` category.
+ADR entries are never removed during compression — they are intentionally permanent.
 
 
 ---
@@ -415,40 +403,51 @@ them via `kb-write.skill.md` using the `decisions` category.
 ### Lookup workflow
 
 The user's question arrives in the language of **symptoms and observations**.
-The index is written in the language of **modules and technologies**.
-The lookup algorithm bridges that gap in three levels.
+`index.yaml` is the only file scanned. Entry files are opened only for the
+final candidates, never during the scan itself.
+
+**Early-exit rule:** after every step, if exactly 1 candidate remains → skip directly to Result.
 
 ```
 User: "список пользователей сбрасывается когда нажимаю кнопку назад"
 
-─── Level 1: decompose the question ──────────────────────────────────────────
-  Symptoms (what the user observes):  reset, сбрасывается
-  Entities (what is involved):        user list, список пользователей
-  Action (what triggered it):         back button, back navigation
-  Inferred technical terms:           pagination (AI infers from "list + reset")
+─── Step 1: decompose the question ───────────────────────────────────────────
+  Extract key terms in all languages present:
+    "reset", "сбрасывается", "user list", "back button", "back navigation"
+  Infer related technical terms: "pagination" (from "list + resets")
 
-─── Level 2: scan index.yaml ───────────────────────────────────────────────────
-  Priority 1 — scan TRIGGERS in each entry in index.yaml:
-               "page size resets", "back button" → bug-001  ✓
+─── Step 2: scan TRIGGERS in index.yaml  [primary] ───────────────────────────
+  Match extracted terms against triggers field of each entry.
+  Also match component field if question names a specific service or module.
+  Result: kb-005, kb-007, JIRA-1234, JIRA-5501  (multiple candidates)
+  → early-exit rule: >1 candidates, continue to Step 3
 
-  Priority 2 — scan TAGS in each entry in index.yaml:
-               "reset", "user-list", "pagination" → bug-001  ✓
+─── Step 3: scan TAGS in index.yaml  [narrow down] ───────────────────────────
+  Run only if Step 2 produced 0 or more than 1 candidate.
+  - 0 candidates: scan tags and component across all entries → new candidate set
+  - >1 candidates: scan tags and component within Step 2 set to reduce it
+  Result: kb-005, JIRA-1234  (still multiple)
+  → early-exit rule: >1 candidates, continue to Step 4
+  → 0 candidates after Step 3: go to fallback
 
-  If 2+ candidates remain: read those entry files and use SUMMARY (from the
-  entry body) as a tiebreaker to pick the best match. SUMMARY is not in the index.
+─── Step 4: read SUMMARY from candidate files  [tiebreaker] ──────────────────
+  Run only if Step 3 left 2 or more candidates.
+  Read SUMMARY from kb-005.md and JIRA-1234.md only — not the full KB.
+  "page size resets on back navigation" → kb-005 is the best match
+  → early-exit rule: 1 candidate, skip to Result
 
-─── Level 3: fallback if no match ───────────────────────────────────────────
-  If no entry found in levels 1–2:
-    - AI expands search with synonyms and related terms
-    - AI reads all rows with partial tag overlap
-    - If still no match, AI explicitly states:
-      "No entries found in the knowledge base for this topic.
-       Do you want to create one after we resolve the issue?"
+─── Step 5: related chain  [on explicit request only] ────────────────────────
+  "what is related to X?": read related list from matched entry in index.yaml,
+                            also grep index.yaml for entries referencing X
+  Traverse recursively up to depth 3.
+
+─── Fallback  [no match after all steps] ─────────────────────────────────────
+  "No entries found in the knowledge base for this topic.
+   Do you want to create one after we resolve the issue?"
   Do NOT fabricate knowledge or guess from code alone.
 
 ─── Result ───────────────────────────────────────────────────────────────────
-  AI reads bug-001.md (~300 tokens) and answers with verified knowledge.
-
+  Read the matched entry file(s) and answer with verified knowledge.
 ```
 
 ### Invocation model
@@ -457,29 +456,57 @@ All write operations require explicit developer invocation.
 Read operations follow the rule below.
 
 **Auto-consult rule:**
-The primary agent MAY invoke `kb-expert` automatically when the developer's
-request touches a topic the agent cannot answer with high confidence from
-code and context alone — specifically: deployment procedures, configuration
-values, known bugs, past task outcomes, behavior quirks, or architectural
-decisions. In these cases the primary agent delegates to `kb-expert` without
-waiting for an explicit "kb-expert:" prefix from the developer.
 
-The primary agent MUST NOT auto-consult for general coding questions,
-algorithm explanations, or any topic where KB context would not materially
-improve the answer.
+The primary agent MUST invoke `kb-expert` before answering any non-trivial
+question. Non-trivial means any question that is not purely about general
+language or framework knowledge (e.g. "what is a Java interface").
 
-When auto-consulting, the primary agent informs the developer:
+The cost of an empty lookup is minimal — one `index.yaml` read. The cost of
+missing relevant project context is a worse answer. When in doubt, consult.
+
+**Visibility:** auto-consult is always visible to the developer:
 > "Checking the knowledge base for relevant context..."
 
-If `kb-expert` finds nothing, the primary agent continues without KB context
-and does not surface the empty result to the developer unless asked.
+If `kb-expert` finds matching entries, the primary agent incorporates them
+into its answer and cites the entry IDs:
+> "According to kb-entry ALFA-32867: ..."
 
-The knowledge base is operated through two explicit triggers:
+If `kb-expert` finds nothing, the primary agent states this explicitly:
+> "Nothing found in the knowledge base on this topic."
+and continues with its best answer from code and context.
+
+The empty result is always surfaced — it signals that a new KB entry
+may be worth creating after the issue is resolved.
+
+### RAG injection rule
+
+When `kb-expert` returns entries, the primary agent MUST use them as context,
+not merely cite them. Concretely:
+
+1. Read each returned entry in full (frontmatter + body).
+2. Prepend entries to reasoning as "past experience context" before formulating
+   the answer — treat them as if the developer had just explained the background.
+3. Reference entries explicitly in the answer:
+   > "Based on kb-entry JIRA-4821: the email search was added to CisUsersService,
+   >  so the same pattern applies here."
+4. If entries contradict each other, do not choose automatically. Present both
+   to the developer and ask explicitly:
+   > "Entries [ID-A] (v2) and [ID-B] (v1) appear to contradict each other on
+   >  this topic. Which one reflects the current state? I will use that one
+   >  and you may want to update or remove the other."
+   Wait for the developer's answer before proceeding.
+5. **Maximum 3 entries per query.** If more are found, use the top 3 by
+   relevance. Injecting more degrades answer quality and wastes context window.
+6. If only `summary` is needed to answer the question, read only `summary` from
+   the entry file — do not load the full body unless detail is required. This
+   minimises token cost for simple lookups.
+
+The knowledge base is operated through explicit triggers:
 
 **Trigger 1 — direct lookup request:**
 > "kb-expert: find details on JIRA-4821"
 > "kb-expert: что мы знаем про проблему со сбросом пагинации?"
-> "kb-expert: show everything caused by tsk-001"
+> "kb-expert: show everything caused by kb-001"
 
 `kb-expert` loads `kb-lookup.skill.md` and executes the search.
 
@@ -493,13 +520,22 @@ The knowledge base is operated through two explicit triggers:
 When the developer signals that work on a task is done:
 > "done", "task complete", "JIRA-5501 closed", "закончил с задачей"
 
-`kb-expert` does not write immediately. Instead it prompts the developer:
-> "Task JIRA-5501 appears complete. Do you want to create or update
->  a knowledge base entry? If yes, briefly describe what was discovered
->  or changed and I will draft the entry for your review."
+`kb-expert` does not write immediately. Instead it:
 
-The developer can confirm, provide details, or decline. No entry is
-created without an explicit affirmative response.
+1. Reconstructs a brief description of what was done from the session context:
+   what problem was solved, what files were changed, what was discovered.
+2. Presents that description to the developer together with a draft entry
+   proposal, and asks for confirmation:
+   > "Task JIRA-5501 appears complete. Based on our session, here is what
+   >  I understood was done:
+   >  [brief description reconstructed from context]
+   >  Shall I create a KB entry for this? I can refine the draft if anything
+   >  is incorrect or missing."
+3. If the developer confirms — proceeds to draft via `kb-write.skill.md`.
+4. If the developer corrects the description — incorporates corrections and drafts.
+5. If the developer declines — acknowledges and does nothing.
+
+No entry is created without an explicit affirmative response.
 
 This trigger applies both when `kb-expert` is invoked directly and when
 the primary agent forwards a task-complete signal to it.
@@ -520,20 +556,20 @@ This keeps the skill surface minimal: one file to load for writing, one for look
 ### Skill file locations
 
 ```
-.knowledge/skills/
-├── kb-write.skill.md    <- universal entry creation skill (all categories)
-└── kb-lookup.skill.md   <- three-level lookup algorithm
+~/.agents/skills/
+├── kb-write.skill.md      <- universal entry creation skill (all categories)
+├── kb-lookup.skill.md     <- three-level lookup algorithm
+└── kb-compress.skill.md   <- index compression and audit
 ```
 
-### Why two skills instead of one per category
+Skills are shared across all projects from `~/.agents/skills/`.
+The `kb-expert.agent.md` agent definition lives alongside them:
 
-A per-category approach was considered but rejected. Each category does have
-a different section structure, but this is captured as a dispatch table inside
-`kb-write.skill.md` rather than as separate files. Benefits:
+```
+~/.agents/skills/
+└── kb-expert.agent.md
+```
 
-- One file to load regardless of what category is being written.
-- One file to update when the format changes.
-- No ambiguity about which skill to invoke.
 
 ### kb-write.skill.md — responsibilities
 
@@ -542,9 +578,9 @@ developer's request:
 
 **mode: create** — new knowledge, no existing entry for this topic:
 1. Determine the new ID: tracker ticket ID if provided, otherwise next
-   sequential KB prefix-id for the target directory.
+   sequential `kb-NNN` ID.
 2. Populate all frontmatter fields per the rules below. `version: 1`.
-3. Select the correct section template from the category dispatch table.
+3. Select the correct section template from "Sections used per category" in Individual Entry Format.
 4. Draft the complete entry and present it to the developer for review.
 5. After confirmation: write the entry file and append one row to `index.yaml`.
 
@@ -558,22 +594,21 @@ developer's request:
 **Mode selection by kb-expert:**
 - "create entry for JIRA-5501" → `mode: create`
 - "update JIRA-4821, sorting bug also fixed there" → `mode: update`
-- task-complete signal with existing related entry → ask developer:
-  "Found existing entry JIRA-4821. Create a new entry or update the existing one?"
+- task-complete signal with exact ID match in index.yaml → `mode: update` automatically, no question needed
+- task-complete signal with no ID match → `mode: create`
 
 ### Frontmatter generation rules
 
 | Field           | How to populate                                                                                          |
 |-----------------|----------------------------------------------------------------------------------------------------------|
-| `id`            | Use tracker ticket ID if developer provides one. Otherwise read `index.yaml`, find the highest KB prefix-id for the target directory, increment by 1. Zero-pad to 3 digits. |
-| `category`      | Set from the category the developer confirmed. Never inferred.                                           |
+| `id`            | Use tracker ticket ID if developer provides one. Otherwise read `index.yaml`, find the highest `kb-NNN` value across all entries, increment by 1. Zero-pad to 3 digits. |
 | `version`       | Always `1` for new entries. Increment by 1 on every subsequent update.                                  |
 | `tags`          | Cover all four dimensions: symptom, module, tech, feature. Minimum 4 tags. Use the tag checklist below. |
-| `triggers`      | Required for `bugs` and `behavior`. 2–5 natural-language symptom phrases as a user would report them, including alternate languages if relevant. Optional for other categories. |
+| `triggers`      | yes — all categories. 2–5 natural-language symptom phrases as a user would report them. Include non-English if relevant. Primary lookup target in index.yaml. |
 | `date`          | Today's date in `YYYY-MM-DD`.                                                                            |
 | `author`        | Always `ai-assisted` when generated by an AI agent.                                                     |
-| `issue_title`   | Populate verbatim from the ticket title if the ID is a tracker ticket. Omit otherwise.                  |
-| `related`     | Ask the developer if this entry was triggered by a previous entry. Populate with IDs (e.g. `[JIRA-4821, bug-003]`). Omit if none. Never guess. |
+| `subject`   | Populate verbatim from the ticket title if the ID is a tracker ticket. Omit otherwise.                  |
+| `related`     | Ask the developer if this entry was triggered by a previous entry. Populate with IDs (e.g. `[JIRA-4821, kb-003]`). Omit if none. Never guess. |
 
 
 ### Tag generation checklist
@@ -590,41 +625,26 @@ Before proposing an entry, AI must verify tags cover all four dimensions:
 If a dimension genuinely does not apply, it may be omitted — but AI must not
 omit it simply because it is harder to infer.
 
-### Category section dispatch table
-
-Sections are recommended, not mandatory. Fill in what is known at the time
-of writing. A partial entry with accurate content is more useful than a
-complete entry with guessed or placeholder content. Missing sections can
-be filled in when the information becomes available (update mode).
-
-| Category   | Recommended sections                             |
-|------------|--------------------------------------------------|
-| tasks      | Problem, Solution (with file:line refs), Notes   |
-| bugs       | Symptom, Root Cause, Fix, Affected Files         |
-| config     | Variable/Key, Purpose, Valid Values, Gotchas     |
-| deployment | Context, Issue, Resolution, Commands             |
-| behavior   | Observation, Explanation, Implications           |
-
 ### index.yaml update rules
 
-After writing the entry file, append one entry to the `entries` list in `index.yaml`.
-The field `component` is required. Example:
+After writing the entry file, append one entry to `index.yaml`:
 
 ```yaml
   - id: JIRA-5501
-    component: infrastructure
+    component: [infrastructure]
     related: []
     triggers:
-      - 504 in prod, timeout under load
+      - 504 in prod
+      - timeout under load
       - nginx не отвечает
     tags:
       - timeout
+      - 504
       - nginx
       - prod
-      - deploy
 
-  - id: bug-014
-    component: user-service
+  - id: kb-014
+    component: [infrastructure]
     related: [JIRA-5501]
     triggers:
       - crashes after deploy
@@ -633,16 +653,15 @@ The field `component` is required. Example:
       - crash
       - deploy
       - startup
-      - spring
 ```
 
 Field rules:
-- `id` — tracker ticket ID if one exists, otherwise KB prefix-id. Must match the entry file name exactly.
-- `component` — required. Service, module, or infrastructure unit this entry belongs to.
-- `related` — list of entry IDs. Empty list if none.
+- `id` — tracker ticket ID if one exists, otherwise `kb-NNN`. Must match the entry file name exactly.
+- `component` — list of services or modules this entry belongs to. Required. Use list syntax even for a single value.
+- `related` — list of related IDs. Empty list if none.
 - `triggers` — 2–4 natural-language symptom phrases. Include non-English if relevant.
-- `tags` — 4–6 most discriminating tags. Full list lives in the entry file.
-- SUMMARY is intentionally absent from the index.
+- `tags` — 4–6 most discriminating tags from `tags.md`. Full list lives in the entry file.
+- `summary` is absent from the index — it lives in the entry file only.
 
 ### kb-lookup.skill.md — responsibilities
 
@@ -652,106 +671,7 @@ a user question. Agents load this skill instead of re-implementing lookup logic 
 
 ---
 
-## Bootstrapping a New Project Knowledge Base
-
-Steps to introduce the knowledge base into a project for the first time.
-
-### Step 1 — Copy the template structure
-
-Copy the template from the shared agents directory into the project root:
-
-```bash
-cp -r ~/.agents/template/.knowledge <project-root>/.knowledge
-```
-
-The template contains the empty directory structure, a blank `index.yaml`,
-and a `README.md` describing the knowledge base workflow and purpose.
-No entries are created at this point.
-
-### Step 2 — Configure git
-
-The knowledge base may be maintained in a separate repository or excluded
-from the main project repository depending on team policy.
-
-Add to `.gitignore` if keeping it out of the main repo:
-```
-.knowledge/
-```
-
-Or initialise a separate git repository inside `.knowledge/` if it will
-be versioned independently:
-```bash
-cd .knowledge && git init
-```
-
-If kept in the main repo, no additional git configuration is needed —
-the directory will be tracked normally.
-
-### Step 3 — Seed initial entries (optional)
-
-If the project has existing documentation, `kb-expert` can extract
-basic knowledge and propose initial entries without manual interviewing:
-
-```
-kb-expert: read README.md and repo_map.md, propose initial knowledge entries
-```
-
-`kb-expert` reads the available files, identifies deployment steps,
-configuration requirements, and notable architectural decisions, then
-proposes draft entries for developer review. Each entry is confirmed
-individually before being written.
-
-This step is optional. Starting with zero entries and building the base
-organically as tasks are completed is equally valid.
-
----
-
-## Technology-Agnostic Operation
-
-This concept works with any AI assistant that has file-system access and search
-tools (grep, glob, file read). It does not require:
-
-- Vector databases
-- Embeddings
-- Semantic search
-- Any external services
-
-The `index.yaml` file serves as a manual routing table. The AI performs keyword
-matching between the user's question and the TRIGGERS and TAGS columns. This
-is sufficient for project-scale knowledge bases (up to several hundred entries)
-because the index stays compact even as the number of entries grows.
-
-### Scaling the index
-
-The index is intentionally a single file. Splitting it into per-category
-sub-indexes provides no benefit: since search is by TRIGGERS and TAGS rather
-than by category, an AI agent would need to read all sub-indexes anyway,
-consuming the same number of tokens.
-
-The correct scaling strategy is **index compression** — keeping only the
-fields that serve lookup (`ID`, `RELATED`, `TRIGGERS`, `TAGS`) and never
-adding fields that are only useful after an entry is found (SUMMARY, CATEGORY).
-This is already the current design.
-
-When the index exceeds approximately 500 rows and token cost becomes a concern,
-apply the `kb-compress.skill.md` skill which audits and prunes low-signal rows
-(duplicate triggers, redundant tags, stale entries with no recent cause-chain
-references).
-
-### Future upgrade path (> 500 entries)
-
-If compression is insufficient and lookup recall degrades noticeably, consider
-migrating to `sqlite-vec` with local embeddings (`nomic-embed-text` via `llama.cpp`).
-This replaces index scanning with vector similarity search while keeping the
-file-per-entry structure and all frontmatter fields intact.
-Evaluate only when the problem is observed in practice.
-
----
-
 ## Staleness Management
-
-The knowledge base is maintained under git. Git is the history — there is no need
-to preserve stale content inside the files themselves.
 
 ### Updating an entry
 
@@ -760,15 +680,14 @@ When a situation changes (bug fixed, config updated, behavior changed):
 1. Edit the entry file in place with the new content.
 2. Increment `version` by 1 in the frontmatter.
 3. Update `date` to today.
-3. Update `TRIGGERS` or `TAGS` in `index.yaml` if they no longer reflect the entry.
+4. Update the corresponding entry in `index.yaml`: sync `triggers`, `tags`, `component`, and `related` if any of them changed.
 
 Entry file frontmatter after update:
 ```yaml
-id: cfg-001
-category: config
+id: kb-001
 version: 2              # incremented from 1
 date: 2026-03-10        # updated
-component: infrastructure
+component: [infrastructure]
 tags:
   - auth0
   - clientId
@@ -781,8 +700,8 @@ related: []
 
 Corresponding `index.yaml` entry after update:
 ```yaml
-  - id: cfg-001
-    component: infrastructure
+  - id: kb-001
+    component: [infrastructure]
     related: []
     triggers:
       - clientId wrong in prod
