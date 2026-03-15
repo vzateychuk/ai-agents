@@ -13,8 +13,8 @@ At the start of **every** session, before any task or user request, run this boo
    - Windows native: `%USERPROFILE%\.agents\instructions\`
 
 2. **Read the following instruction files in order:**
-   1. `ai-session-workflow.instruction.md` — repo_map navigation and file access
-   2. `read-rules.instruction.md` — rule loading (common rules at bootstrap; agent rules when agent is selected)
+   1. `read-rules.instruction.md` — rule loading (common rules at bootstrap; agent rules when agent is selected)
+   2. `ai-session-workflow.instruction.md` — repo_map navigation and file access
 
 3. **Apply loaded instructions as mandatory session rules.**
 
