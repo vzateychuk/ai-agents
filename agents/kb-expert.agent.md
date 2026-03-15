@@ -2,7 +2,7 @@
 name: kb-expert
 description: Sub-agent for project knowledge base (.knowledge/). Use when the user asks to find, create, or update KB entries, compress the index, or when the primary agent needs KB context for deployment, config, bugs, past tasks, or decisions.
 model: inherit
-rules: [kb-tags]
+rules: [kb-tags, scan-ignore]
 ---
 
 # kb-expert.agent.md

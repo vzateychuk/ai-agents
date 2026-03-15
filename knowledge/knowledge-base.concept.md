@@ -213,10 +213,12 @@ Tags are maintained in `.knowledge/tags.md` — a flat list of approved lowercas
 
 ---
 400
-401
-403
+pagination
+jwt
 500
 timeout
+helm
+login
 ```
 
 Tag usage and constraints are defined in rule `kb-tags` (source of truth, search before add, alphabetical append, no fragmentation).
