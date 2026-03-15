@@ -1,3 +1,9 @@
+---
+name: kb-compress
+description: Audit and compress .knowledge/index.yaml when it grows large (~500+ entries). Use when the user asks to compress the KB index or audit the knowledge base.
+tags: knowledge-base, index, compress, audit
+---
+
 # kb-compress.skill.md
 
 ## Purpose
@@ -98,7 +104,7 @@ representative of their dimension (symptom / module / tech / feature).
 
 ### Step 4 — Detect stale entries
 
-Flag entries where ALL of the following are true:
+`date` and `version` are not in index.yaml; read them from each entry file's frontmatter (by ID from the index). Then flag entries where ALL of the following are true:
 - `date` is older than 12 months
 - No other entry references this ID in its `related` list
 - `version` is still `1` (never updated)
@@ -112,9 +118,9 @@ Do not flag entries in `decisions/` — ADRs are intentionally permanent.
 
 ### Step 5 — Detect trigger bloat
 
-Find entries with more than 5 triggers in `index.yaml`.
-Triggers beyond 5 rarely improve recall and increase index size.
-Propose trimming to the 3–4 most distinctive phrases.
+Find entries with more than 6 triggers in `index.yaml`.
+Triggers beyond 6 rarely improve recall and increase index size.
+Propose trimming to at most 6, keeping the most distinctive phrases.
 Present the current list and ask the developer to confirm the trim.
 
 ### Step 6 — Report and confirm
@@ -127,7 +133,7 @@ Compression audit complete.
 Duplicate triggers:   3 groups  (6 entries)
 Redundant tags:       11 tags across 8 entries
 Stale entries:        7 entries
-Trigger bloat:        4 entries (>5 triggers)
+Trigger bloat:        4 entries (>6 triggers)
 
 Estimated size reduction: ~18% (~94 entries / tokens)
 

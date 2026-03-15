@@ -1,3 +1,9 @@
+---
+name: kb-lookup
+description: Execute knowledge base lookup from .knowledge/index.yaml and entry files. Use when the user or primary agent needs KB info (deployment, config, bugs, tasks, behavior, decisions).
+tags: knowledge-base, lookup, search
+---
+
 # kb-lookup.skill.md
 
 ## Purpose

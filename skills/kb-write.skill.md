@@ -1,3 +1,9 @@
+---
+name: kb-write
+description: Create or update .knowledge/ entries and index.yaml rows. Use when the user asks to create or update a KB entry (tasks, bugs, config, deployment, behavior, decisions).
+tags: knowledge-base, write, create, update
+---
+
 # kb-write.skill.md
 
 ## Purpose
@@ -60,8 +66,8 @@ Infer category from context. When unclear, ask the developer to confirm.
 |---------------|-----------------------------------------------------------------------------------------------------|
 | `id`          | From Step 1.                                                                                        |
 | `version`     | Always `1` for new entries.                                                                         |
-| `tags`        | Generate covering all four dimensions (see Tag checklist below). Minimum 4 tags.                   |
-| `triggers`    | 2–4 natural-language symptom phrases as the user would report them. Include non-English if relevant. Required for all categories — primary lookup target in index.yaml. |
+| `tags`        | 4–8 tags from tags.md, covering four dimensions. Apply rule kb-tags.                               |
+| `triggers`    | 2–6 natural-language symptom phrases. Per rule kb-tags. Required for all categories — primary lookup target in index.yaml. |
 | `date`        | Today's date in `YYYY-MM-DD`.                                                                       |
 | `author`      | Always `ai-assisted`.                                                                               |
 | `component`   | List of services, modules, or infrastructure units this entry belongs to. Use list syntax even for one value. Required in index.yaml. Ask the developer if the entry spans multiple services. |
@@ -71,22 +77,7 @@ Infer category from context. When unclear, ask the developer to confirm.
 
 #### Tag checklist — verify before proposing
 
-**Step 1 — check tags.md first:**
-Read `.knowledge/tags.md`. Choose tags exclusively from this list.
-If a needed concept is not covered by any existing tag, search for the
-closest match. Only if no suitable tag exists: propose a new tag,
-append it to `tags.md` in alphabetical order as part of the same write operation.
-
-**Step 2 — verify four dimensions:**
-```
-□ symptom  — what the user observes (error, unexpected behaviour, missing feature)
-□ module   — which component or service is involved
-□ tech     — which technology, framework, or infrastructure element
-□ feature  — which functional area or user-facing scope
-```
-
-If a dimension genuinely does not apply, it may be omitted.
-Do not omit a dimension simply because it is harder to infer.
+Apply rule kb-tags: choose only from tags.md; before adding a new tag search for similar and append alphabetically; verify four dimensions (symptom, module, tech, feature) where applicable.
 
 ### Step 4 — Select section template
 

@@ -1,43 +1,8 @@
 # Knowledge Base
 
-Accumulated project experience — deployment quirks, bug root causes, config
-gotchas, architectural decisions — stored as searchable entries and injected
-as RAG context when the AI answers questions about this project.
-
-Entry files are plain Markdown under git, updated in place. See [How RAG works](#how-rag-works) below.
-
----
-
-## How it differs from repo_map.md
-
-| | repo_map.md | .knowledge/ |
-|---|---|---|
-| Describes | Current code structure | Accumulated project experience |
-| Answers | Where is the code for X? | How was X solved / why does X behave this way? |
-| Loaded | Every session start | On demand via kb-expert |
-| Changes when | Code structure changes | Task completed, bug found, quirk discovered |
-
----
-
-## Setting up for a new project
-
-```bash
-cp -r ~/.agents/template/.knowledge <project-root>/.knowledge
-```
-
-The template contains the empty directory structure, a blank `index.yaml`,
-`tags.md`, and this `README.md`. No entries are created at this point.
-
-**Git options** — choose one:
-- Keep inside main repo: no extra steps needed
-- Exclude from main repo: add `.knowledge/` to `.gitignore`
-- Separate repo: `cd .knowledge && git init`
-
-**Seed initial entries (optional):**
-```
-kb-expert: read README.md and repo_map.md, propose initial knowledge entries
-```
-Starting with zero entries and building organically is equally valid.
+This directory contains the project knowledge base — accumulated experience
+about deployment, configuration, bugs, architectural decisions, and non-obvious
+system behavior that cannot be derived from reading the source code alone.
 
 ---
 
@@ -54,15 +19,18 @@ Starting with zero entries and building organically is equally valid.
 ├── behavior/           <- non-obvious business logic, system behavior
 ├── decisions/          <- architectural decision records (ADRs)
 └── skills/
-    ├── kb-expert.agent.md
+    ├── kb-compress.skill.md
     ├── kb-lookup.skill.md
-    ├── kb-write.skill.md
-    └── kb-compress.skill.md
+    └── kb-write.skill.md
 ```
+
+Full format and rules: [knowledge-base.concept.md](knowledge-base.concept.md).
+
+The template `tags.md` is a minimal seed. Add project-specific tags when you create entries.
 
 Entry files are named by their ID:
 - Tracker ticket ID when available: `tasks/JIRA-4821.md`
-- `kb-NNN` otherwise: `bugs/kb-003.md`
+- `kb-NNN` e.g. `bugs/kb-003.md`
 
 ---
 
@@ -85,10 +53,6 @@ kb-expert: how do we deploy to prod?
 kb-expert: create entry for JIRA-5501, we fixed nginx timeout in prod
 ```
 
-Write entries as **self-contained units** — the AI reads each entry in
-isolation as RAG context. Include enough detail that the entry is useful
-without reading any other file.
-
 ### Update an existing entry
 
 ```
@@ -97,8 +61,7 @@ kb-expert: update JIRA-4821, sorting bug was also fixed there
 
 ### Task complete — prompt for entry creation
 
-When you signal task completion, `kb-expert` will ask whether to create
-or update a knowledge base entry:
+When you signal task completion, kb-expert infers what was done from the session and will propose creating or updating an entry.
 
 ```
 done / task complete / JIRA-5501 closed / закончил с задачей
@@ -112,26 +75,14 @@ kb-expert: show index
 
 ---
 
-## How RAG works
+## Auto-consult
 
-When you ask a non-trivial question, the primary AI agent **automatically**
-consults the knowledge base before answering. This is not optional — it is
-the core mechanism that makes the AI context-aware for this project.
+The primary AI agent may consult the knowledge base automatically when
+your question touches deployment, configuration, known bugs, past tasks,
+behavior quirks, or architectural decisions — topics where KB context
+would materially improve the answer. When this happens you will see:
 
-You will see:
 > "Checking the knowledge base for relevant context..."
-
-The agent retrieves up to 3 relevant entries, injects them as context, and
-uses them to enrich the answer. If a past task solved a similar problem,
-if a bug was previously diagnosed, if an architectural decision explains
-current behaviour — the AI will reference that knowledge explicitly:
-> "Based on kb-entry JIRA-4821: ..."
-
-If nothing relevant is found:
-> "Nothing found in the knowledge base on this topic."
-
-This empty result is also useful: it is a signal that once you resolve the
-current issue, creating a new KB entry will help future sessions.
 
 ---
 
@@ -152,14 +103,6 @@ for your review.
 
 ## Version history
 
+Entry files are plain Markdown under git. Every change is tracked.
 The `version` field in each entry's frontmatter shows how many times
-the entry has been updated. Full history is available via `git log`.
-
----
-
-## Future upgrade path
-
-When the index exceeds ~500 entries and `kb-compress` is no longer sufficient,
-consider migrating to `sqlite-vec` with local embeddings (`nomic-embed-text`
-via `llama.cpp`). This replaces keyword matching with vector similarity search
-while keeping all entry files intact. Evaluate only when degradation is observed.
+the entry has been updated.

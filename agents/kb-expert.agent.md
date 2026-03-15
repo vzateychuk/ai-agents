@@ -1,3 +1,10 @@
+---
+name: kb-expert
+description: Sub-agent for project knowledge base (.knowledge/). Use when the user asks to find, create, or update KB entries, compress the index, or when the primary agent needs KB context for deployment, config, bugs, past tasks, or decisions.
+model: inherit
+rules: [kb-tags]
+---
+
 # kb-expert.agent.md
 
 ## Identity
@@ -16,11 +23,11 @@ about the codebase unless the answer comes directly from a knowledge base entry.
 Load the appropriate skill file before executing any operation.
 Do not re-implement skill logic inline.
 
-| Operation        | Skill file                               |
-|------------------|------------------------------------------|
-| Lookup / search  | `~/.agents/skills/kb-lookup.skill.md`    |
-| Create / update  | `~/.agents/skills/kb-write.skill.md`     |
-| Compress index   | `~/.agents/skills/kb-compress.skill.md`  |
+| Operation        | Skill file            |
+|------------------|------------------------|
+| Lookup / search  | kb-lookup.skill.md     |
+| Create / update  | kb-write.skill.md      |
+| Compress index   | kb-compress.skill.md   |
 
 ---
 
@@ -154,30 +161,6 @@ The primary agent then:
 
 ---
 
-## File layout reference
-
-```
-.knowledge/
-├── index.yaml                  <- single index file, always read first
-├── skills/
-│   ├── kb-lookup.skill.md
-│   ├── kb-write.skill.md
-│   └── kb-expert.agent.md    <- this file
-├── tasks/
-├── bugs/
-├── config/
-├── deployment/
-├── behavior/
-├── decisions/
-└── tags.md                   <- approved tag dictionary
-```
-
-Entry files are named by their ID:
-- Tracker ticket ID if available: `tasks/JIRA-4821.md`
-- `kb-NNN` otherwise: `bugs/kb-003.md`
-
----
-
 ## index.yaml column reference
 
 ```yaml
@@ -187,12 +170,11 @@ Entry files are named by their ID:
   triggers:
     - email search missing
   tags:
-    - missing-feature
-    - user-list
+    - 401
 ```
 
 - `id` — tracker ticket ID or `kb-NNN`. Unique. Used as file name.
 - `component` — list of services or modules this entry belongs to. Required. List syntax even for one value.
 - `related` — list of IDs of causally or thematically linked entries.
-- `triggers` — 2–4 natural-language symptom phrases. Primary search target.
-- `tags` — 4–6 keywords from `tags.md` only.
+- `triggers` — 2–6 natural-language symptom phrases (per rule kb-tags). Primary search target.
+- `tags` — 4–8 keywords from `tags.md` only (per rule kb-tags).
