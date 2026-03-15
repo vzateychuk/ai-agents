@@ -30,7 +30,7 @@ This file is read by AI at the start of every session — optimize for token eff
 Skip directories containing only generated, compiled, downloaded, cached, or IDE-managed
 artifacts (e.g. `.git`, `.vscode`, `.idea`, `.copilot`, `.codex`, `.cursor`, `.agents`, `.claude`,
 `.gemini`, `.codemie`, `.continue`, `build`, `node_modules`, `dist`, `target`, `.cache`, `coverage`,
-`venv`, `__pycache__`, `vendor/`, `.next/`, `obj/`, `bin/`, `.bundle/`, `pkg/`).
+`venv`, `__pycache__`, `vendor/`, `.next/`, `obj/`, `bin/`, `out`, `.bundle/`, `pkg/`).
 
 Skip AI-agent and tool config: do not scan directories that belong to AI assistants or
 IDE agents (e.g. agent rules, instructions, skills, prompts). Do not include in the map
