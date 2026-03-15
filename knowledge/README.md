@@ -77,7 +77,7 @@ kb-expert: show index
 
 ## Auto-consult
 
-The primary AI agent may consult the knowledge base automatically when
+The primary AI agent must consult the knowledge base automatically when
 your question touches deployment, configuration, known bugs, past tasks,
 behavior quirks, or architectural decisions — topics where KB context
 would materially improve the answer. When this happens you will see:

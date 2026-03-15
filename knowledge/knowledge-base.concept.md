@@ -86,6 +86,7 @@ retrieval quality.
 ```
 .knowledge/
 ├── index.yaml              <- compact index, the only file read during lookup
+├── tags.md                 <- approved tag dictionary
 ├── deployment/           <- deployment, Docker, Helm, CI/CD quirks
 │   ├── kb-001.md
 │   └── kb-002.md
@@ -101,8 +102,8 @@ retrieval quality.
 ├── behavior/             <- non-obvious business logic, system behavior, edge cases
 │   └── kb-008.md
 └── decisions/            <- architectural decision records (ADRs)
-    ├── ADR-001-auth-provider.md
-    └── ADR-002-pagination-model.md
+    ├── kb-042-auth-provider.md
+    └── kb-043-pagination-model.md
 ```
 
 Categories may be extended as the project grows. New categories should be added
@@ -160,7 +161,10 @@ entries:
       - нет поиска по email
       - cannot find user by email
     tags:
+      - 400
       - 401
+      - 403
+      - 500
 
   - id: ALFA-32867
     component: [user-service]
@@ -267,10 +271,11 @@ Each knowledge file follows this structure:
 ---
 id: JIRA-4821
 version: 1
+summary: "Added email search field to user management via CisUsersService and ManageUserComponent."
+component: [user-service]
 tags: [missing-feature, user-list, user-service, manage-user, user-search]
 triggers: ["email search missing", "нет поиска по email", "cannot find user by email"]
 date: 2026-01-15
-author: ai-assisted / developer-name
 subject: "Add email search to user management screen"
 ---
 
@@ -279,10 +284,11 @@ subject: "Add email search to user management screen"
 ---
 id: kb-003
 version: 1
-tags: [reset, back-navigation, user-list, pagination, v2api]
+summary: "User list page resets on back navigation; pagination state is lost."
+component: [user-service]
+tags: [reset, back-nav, user-list, pagination, v2api]
 triggers: ["list resets on back", "страница сбрасывается", "pagination lost on back button"]
 date: 2026-02-01
-author: ai-assisted / developer-name
 related: [JIRA-4821]
 ---
 
@@ -299,9 +305,6 @@ Users could only be searched by username. Email search was missing.
 - Added email input in `ManageUserComponent`
   (src/app/components/user/manage-user/manage-user.component.ts:134)
 
-## Summary
-Added email field to SearchUserCriteria and wired it through CisUsersService and ManageUserComponent.
-
 ## Notes
 Backend v2 API supports email as a query param out of the box.
 No backend changes were required.
@@ -313,13 +316,14 @@ No backend changes were required.
 |---------------|-------------|--------------------------------------------------------------------------------------------------|
 | `id`          | yes         | Tracker ticket ID if available (`JIRA-1234`, `ALFA-32867`), otherwise `kb-NNN` (e.g. `kb-042`). Used as the file name. |
 | `version`     | yes         | Integer starting at `1`. Increment by 1 on every in-place update.                               |
+| `summary`     | yes         | One sentence describing what this entry is about. First field read during RAG injection. Used as tiebreaker when multiple candidates match. Without summary, the AI has no fast signal for relevance ranking. |
+| `component`   | recommended | List of services or modules this entry belongs to. Required in index.yaml; optional in frontmatter but recommended. |
 | `tags`        | yes         | Typed keywords covering symptom / module / tech / feature dimensions                            |
-| `date`        | yes         | Date of last update in `YYYY-MM-DD`                                                              |
-| `author`      | yes         | `ai-assisted` or developer name/handle                                                           |
 | `triggers`    | yes         | Natural-language symptom phrases describing the problem as a user would report it. Primary lookup target in index.yaml. Without triggers, retrieval degrades to tags-only. |
-| `subject` | optional    | Verbatim short title of the ticket as written in the tracker. Omit if no tracker ticket.         |
-| `related`   | optional    | List of IDs of causally or thematically linked entries. Omit if none.                                            |
-| `summary`   | yes         | One sentence describing what this entry is about. First field read during RAG injection. Used as tiebreaker when multiple candidates match. Without summary, the AI has no fast signal for relevance ranking. |
+| `date`        | yes         | Date of last update in `YYYY-MM-DD`                                                              |
+| `subject`     | optional    | Verbatim short title of the ticket as written in the tracker. Omit if no tracker ticket.         |
+| `related`     | optional    | List of IDs of causally or thematically linked entries. Omit if none.                            |
+| `author`      | optional    | `ai-assisted` or developer name/handle. May be omitted or placed in body.                         |
 
 When the entry ID is a tracker ticket ID, a developer who remembers
 "we fixed something in ALFA-32867" can find the entry directly by ID.
@@ -518,25 +522,25 @@ No file is created or modified without explicit developer confirmation.
 
 ## Entry Creation Skills
 
-Knowledge base operations are implemented as two universal skill files:
+Knowledge base operations are implemented as three universal skill files:
 `kb-write.skill.md` handles both creating and updating entries via an explicit
 operation mode. `kb-lookup.skill.md` handles all search operations.
-This keeps the skill surface minimal: one file to load for writing, one for lookup.
+`kb-compress.skill.md` handles index audit and compression. One file to load per operation.
 
 ### Skill file locations
 
 ```
 ~/.agents/skills/
 ├── kb-write.skill.md      <- universal entry creation skill (all categories)
-├── kb-lookup.skill.md     <- three-level lookup algorithm
+├── kb-lookup.skill.md     <- lookup algorithm
 └── kb-compress.skill.md   <- index compression and audit
 ```
 
 Skills are shared across all projects from `~/.agents/skills/`.
-The `kb-expert.agent.md` agent definition lives alongside them:
+The `kb-expert` agent lives in `~/.agents/agents/`:
 
 ```
-~/.agents/skills/
+~/.agents/agents/
 └── kb-expert.agent.md
 ```
 
@@ -573,12 +577,14 @@ developer's request:
 |-----------------|----------------------------------------------------------------------------------------------------------|
 | `id`            | Use tracker ticket ID if developer provides one. Otherwise read `index.yaml`, find the highest `kb-NNN` value across all entries, increment by 1. Zero-pad to 3 digits. |
 | `version`       | Always `1` for new entries. Increment by 1 on every subsequent update.                                  |
+| `summary`       | One sentence describing what this entry is about. Required — first field read during RAG injection and tiebreaker during lookup. |
+| `component`     | List of services or modules this entry belongs to. Required in index.yaml; recommended in frontmatter. Ask developer if entry spans multiple services. |
 | `tags`          | Cover all four dimensions: symptom, module, tech, feature. 4–8 tags (per kb-tags rule). Use the tag checklist below. |
 | `triggers`      | yes — all categories. 2–6 natural-language symptom phrases as a user would report them (per kb-tags rule). Include non-English if relevant. Primary lookup target in index.yaml. |
 | `date`          | Today's date in `YYYY-MM-DD`.                                                                            |
-| `author`        | Always `ai-assisted` when generated by an AI agent.                                                     |
-| `subject`   | Populate verbatim from the ticket title if the ID is a tracker ticket. Omit otherwise.                  |
-| `related`     | Ask the developer if this entry was triggered by a previous entry. Populate with IDs (e.g. `[JIRA-4821, kb-003]`). Omit if none. Never guess. |
+| `subject`       | Populate verbatim from the ticket title if the ID is a tracker ticket. Omit otherwise.                  |
+| `related`       | Ask the developer if this entry was triggered by a previous entry. Populate with IDs (e.g. `[JIRA-4821, kb-003]`). Omit if none. Never guess. |
+| `author`        | Optional. Use `ai-assisted` when generated by an AI agent if including. May be omitted or placed in body. |
 
 
 ### Tag generation checklist
@@ -635,7 +641,7 @@ Field rules:
 
 ### kb-lookup.skill.md — responsibilities
 
-Encodes the three-level lookup algorithm described in the Lookup workflow section.
+Encodes the lookup algorithm described in the Lookup workflow section.
 Used by any AI agent that needs to search the knowledge base in response to
 a user question. Agents load this skill instead of re-implementing lookup logic inline.
 

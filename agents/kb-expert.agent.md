@@ -170,7 +170,10 @@ The primary agent then:
   triggers:
     - email search missing
   tags:
+    - 400
     - 401
+    - 403
+    - 500
 ```
 
 - `id` — tracker ticket ID or `kb-NNN`. Unique. Used as file name.
