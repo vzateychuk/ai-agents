@@ -20,6 +20,11 @@ tags: docs, documentation, writing, readme, guides
 - Use concrete examples over abstract explanations.
 - Adapt structure and depth to the document type: a README is scannable and brief; a developer guide is comprehensive; a runbook is step-by-step and unambiguous.
 
+## Formatting
+
+- **Line width:** Prefer lines around 120 characters (page width) where readable; wrap long lines so the document fits a typical editor or page without horizontal scrolling. Do not break in the middle of words or in a way that harms readability (e.g. break lists, code blocks, or tables only where natural).
+- **Formatting scope on partial edits:** When the user requests changes to a single paragraph or a named section (e.g. "correct the paragraph …", "rewrite section …"), apply line-width and line-breaking **strictly to that paragraph or section**. Do not touch formatting elsewhere. In the text you change, keep lines to ~120 characters; treat this as mandatory for the scope the user asked to edit.
+
 ## Audience
 
 - **Junior** — more context, definitions, explanations of "why".
