@@ -138,7 +138,7 @@ Ask: "Confirm to write, or provide corrections?"
 
 Only after explicit developer confirmation:
 1. Write the entry file to the target directory.
-2. Append the new row to `.knowledge/index.yaml`.
+2. Append the new row to `.knowledge/index.yaml`. The row MUST include a `file` field whose value is the derived path `<category-dir>/kb-<sanitised-id>.md` (for example, `bugs/kb-1387.md`), using the same file-naming rules from Step 1b.
 
 ---
 

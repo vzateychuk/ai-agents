@@ -234,6 +234,7 @@ entries:
       - docker
       - arm64
       - multiarch
+    file: bugs/kb-001.md
 ```
 
 Field rules:
@@ -244,6 +245,7 @@ Field rules:
   Include non-English phrases if the team is multilingual. Primary search target.
 - `tags` — 4–8 keywords chosen **exclusively from `tags.md`** (per kb-tags rule).
   Full tag list lives in the entry file; index carries only the most discriminating subset.
+ - `file` — optional; path to the entry file (by default `kb-<sanitised-id>.md` in the appropriate category directory). If omitted, tools derive the path from `id` using the file-naming rules.
 
 A human-readable markdown table can be generated from `index.yaml` on demand
 by asking `kb-expert: show index`.

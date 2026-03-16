@@ -186,8 +186,6 @@ The primary agent then:
     - email search missing
   tags:
     - 400
-    - 401
-    - 403
     - 500
 ```
 
@@ -196,3 +194,4 @@ The primary agent then:
 - `related` — list of IDs of causally or thematically linked entries.
 - `triggers` — 2–6 natural-language symptom phrases (per rule kb-tags). Primary search target.
 - `tags` — 4–8 keywords from `tags.md` only (per rule kb-tags).
+ - `file` — optional path to the entry file (normally `kb-<sanitised-id>.md` in the category directory). If missing, the path is derived from `id`.

@@ -35,6 +35,8 @@ Entry files are named by their ID:
 
 On disk, entry files follow a uniform, filesystem-safe pattern: `kb-<sanitised-id>.md`, where `sanitised-id` is the `id` with all characters outside `[A-Za-z0-9_-]` replaced by `-` and trimmed. For example, `id: #1387` in `bugs/` becomes `bugs/kb-1387.md`.
 
+`index.yaml` entries may include an optional `file` field with the explicit file path (for example, `bugs/kb-1387.md`); if `file` is absent, tools derive the path from `id` using the same naming rules.
+
 ---
 
 ## Working with the knowledge base
