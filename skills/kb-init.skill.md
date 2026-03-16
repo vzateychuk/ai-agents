@@ -17,15 +17,12 @@ The goal is to create a minimal, consistent KB structure plus a single bootstrap
 
 ## When to run
 
-- Developer explicitly requests KB initialization:
+- User explicitly requests KB initialization, for example:
   - `kb-expert: init kb`
   - `kb-expert: init knowledge base`
-  - `kb-expert: create kb`
-  - `kb-expert: new kb`
-  - `kb-expert: создай kb`
-  - `kb-expert: инициализируй kb`
-  - `kb-expert: новая база знаний`
-  - `kb-expert: создай базу знаний проекта`
+
+Free-form variants in English or Russian that clearly mean
+“initialize the project knowledge base” are also valid triggers.
 
 ---
 
@@ -52,12 +49,6 @@ Create the following under the project root:
 
 - Directory: `.knowledge/`
 - Subdirectories under `.knowledge/`:
-  - `tasks/`
-  - `bugs/`
-  - `config/`
-  - `deployment/`
-  - `behavior/`
-  - `decisions/`
   - `misc/`
 
 Also ensure the project `.gitignore` (if it exists at the project root) ignores `.knowledge/`:
@@ -92,6 +83,7 @@ entries: []
      # Tag Dictionary
 
      ---
+     kb
      ```
 
 2. If `repo_map.md` exists:
@@ -124,7 +116,7 @@ If it already exists, leave it unchanged.
 
 ### Step 6 — Create bootstrap entry (idempotent)
 
-Create a single bootstrap entry that documents the KB itself.
+Create a single bootstrap entry that documents the KB itself. If the bootstrap file already exists, do not overwrite it; only report any discrepancies.
 
 1. Target file:
    - `.knowledge/misc/kb-000-knowledge-base.md`
@@ -133,23 +125,23 @@ Create a single bootstrap entry that documents the KB itself.
 2. Frontmatter fields:
    - `id: kb-000-knowledge-base`
    - `version: 1`
-   - `summary`: one sentence describing that this entry documents the project knowledge base and its categories.
-   - `component`: optional; may be `[infra]` or `[kb]`.
-   - `tags`: at least `kb` and `bootstrap`, plus optionally 1–3 module tags taken from the tags seeded in Step 4 (if any).
-   - `triggers`: 2–6 phrases such as `init kb`, `knowledge base initialized`, `создай базу знаний`, `инициализация базы знаний`.
+   - `summary`: one sentence describing the purpose of the project knowledge base, short concept of RAG used.
+   - `component`: `[kb]`.
+   - `tags`: 4–8 tags compliant with rule `kb-tags`. Prefer `kb`, and 3-7 module tags taken from the project structure derived from `repo_map.md` (if it exists) or from the project README.md.
+   - `triggers`: 2–6 phrases taken from knowledge base concept.
    - `date`: today’s date in `YYYY-MM-DD`.
    - `related`: empty list or omitted.
 
 3. Body:
    - Explain briefly:
-     - purpose of the KB
-     - which categories exist (`tasks`, `bugs`, `config`, `deployment`, `behavior`, `decisions`, `misc`)
-     - how to call `kb-expert` for lookup and write operations.
+     - purpose of the KB and how it used
+     - which categories exist by default (`misc`)
+     - how to call `kb-expert` for init, lookup, write and compress operations.
 
 4. Index entry:
    - Append a matching row to `.knowledge/index.yaml`’s `entries` list with the same `id`, `component`, `related`, `triggers`, and a discriminating subset of `tags`.
 
-If `kb-000-knowledge-base` already exists in `entries`, do not append a duplicate; mention any field discrepancies (id, triggers, tags) in the report if detected.
+If `kb-000-knowledge-base` already exists in `entries`, do not append a duplicate; mention any field discrepancies (id, triggers, tags) in the report if detected. If the corresponding file already exists on disk, do not modify it automatically; include any detected mismatches in the report so the user can decide whether to update it.
 
 ---
 
@@ -162,5 +154,5 @@ After running all steps, return a summary containing:
 - Whether `repo_map.md` was found and whether any tags were seeded from it.
 - Any migration warnings for a pre-existing `index.yaml` (if applicable).
 
-No changes are written without explicit developer confirmation from `kb-expert`.
+No changes are written without explicit user confirmation from `kb-expert`.
 

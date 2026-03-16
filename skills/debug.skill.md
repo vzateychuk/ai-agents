@@ -1,7 +1,7 @@
 ---
 name: debug
-description: Debug failing code, tests, or runtime errors. Use when the user reports an error, exception, unexpected behavior, or test failure, or asks to investigate a bug. Applies to any stack; framework-specific signals come from the active agent.
-tags: debug, error, exception, bug, troubleshoot
+description: Debug failing code, tests, or runtime errors. Use when the user reports an error, exception, unexpected behavior, or test failure, or asks to investigate an issue. Applies to any stack; framework-specific signals come from the active agent.
+tags: debug, error, exception, issue, troubleshoot
 ---
 
 # Debug
@@ -22,7 +22,7 @@ Remove debug logging after the issue is resolved.
 ## When to Isolate in a Test
 
 Prefer isolating in a unit test when:
-- The bug is in business logic
+- The issue is in business logic
 - The reproduction path through the full stack is slow or requires external services
 
 ## Intermittent (Flaky) Failures

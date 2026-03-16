@@ -10,14 +10,14 @@ tags: knowledge-base, index, compress, audit
 
 Audit and compress `index.yaml` when it grows large enough that token cost
 becomes a concern (~500+ entries). Identify low-signal content and propose
-pruning candidates for developer review.
+pruning candidates for user review.
 
 Compression also maintains RAG quality. When two entries describe the same
 problem, both may appear in a top-3 retrieval result — wasting a context slot
 that could carry a distinct and more useful entry. Merging near-duplicate entries
 improves retrieval precision, not just index size.
 
-Never delete or modify anything without explicit developer confirmation.
+Never delete or modify anything without explicit user confirmation.
 
 ---
 
@@ -48,7 +48,7 @@ entry B triggers: ["docker build failure", "build fails arm64"]
 ```
 → flag as duplicate trigger candidates.
 
-For each group: show both entries (ID, version, date, one-line summary) and ask the developer to choose one of:
+For each group: show both entries (ID, version, date, one-line summary) and ask the user to choose one of:
 - merge into one entry (specify base ID; content from the other is incorporated and the other deleted)
 - keep both and adjust triggers to differentiate them
 - delete one entry as outdated.
@@ -63,7 +63,7 @@ describe the same problem domain).
 These entries will consistently co-appear in top-3 retrieval for the same
 query, leaving only 1 slot for distinct context.
 
-For each such pair: show both entries (ID, version, date, one-line summary) and ask the developer to choose one of:
+For each such pair: show both entries (ID, version, date, one-line summary) and ask the user to choose one of:
 - merge into one entry (specify base ID)
 - keep both and differentiate triggers so they serve different queries
 - delete one entry as less relevant today.
@@ -87,7 +87,7 @@ representative of their dimension (symptom / module / tech / feature).
 - `date` is older than 12 months
 - No other entry references this ID in its `related` list
 - `version` is still `1` (never updated)
-- Category is `tasks` or `bugs` (not `decisions` or `behavior` — these age better)
+- Category is `tasks` or `issues` (not `decisions` or `behavior` — these age better)
 
 For each flagged entry: present ID, date, version, category, and summary, then ask: keep, update, or remove?
 
@@ -98,7 +98,7 @@ Do not flag entries in `decisions/` — ADRs are intentionally permanent.
 Find entries with more than 6 triggers in `index.yaml`.
 Triggers beyond 6 rarely improve recall and increase index size.
 Propose trimming to at most 6, keeping the most distinctive phrases.
-Present the current list and ask the developer to confirm the trim.
+Present the current list and ask the user to confirm the trim.
 
 ### Step 6 — Report and confirm
 
@@ -136,7 +136,7 @@ Print a short summary:
 - Never delete a `decisions/` entry.
 - Never delete an entry that is referenced in another entry's `related` list
   without first removing or updating that reference.
-- Never apply changes in bulk without per-item developer confirmation.
+- Never apply changes in bulk without per-item user confirmation.
 - If in doubt about an entry's value, keep it.
 - When merging entries, preserve all triggers and tags from both into the merged entry to maintain retrieval coverage.
 - After merging, verify the merged entry's summary remains a single clear sentence — it is the first thing the AI reads during RAG injection.

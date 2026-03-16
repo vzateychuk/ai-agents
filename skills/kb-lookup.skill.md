@@ -1,7 +1,7 @@
 ---
 name: kb-lookup
-description: Execute knowledge base lookup from .knowledge/index.yaml and entry files. Use when the user or primary agent needs KB info (deployment, config, bugs, tasks, behavior, decisions).
-tags: knowledge-base, lookup, search
+description: Execute knowledge base lookup from .knowledge/index.yaml and entry files. Use when the user or primary agent needs KB info (deployment, config, issues, tasks, behavior, decisions).
+tags: kb, knowledge-base, lookup, search
 ---
 
 # kb-lookup.skill.md
@@ -9,13 +9,13 @@ tags: knowledge-base, lookup, search
 ## Purpose
 
 Execute a knowledge base lookup on behalf of `kb-expert`.
-Load this skill when the developer requests information from the knowledge base.
+Load this skill when the user requests information from the knowledge base.
 
 ---
 
 ## Input
 
-A natural-language question or identifier from the developer. May be in any language.
+A natural-language question or identifier from the user. May be in any language.
 Examples:
 - "что мы знаем про проблему со сбросом пагинации?"
 - "find details on JIRA-4821"
@@ -89,7 +89,7 @@ SUMMARY is used only as a tiebreaker between candidates already found in Steps 2
 
 ### Step 5 — Related chain traversal  [on explicit request only]
 
-Run only when the developer explicitly asks about causes or consequences.
+Run only when the user explicitly asks about causes or consequences.
 
 **"What caused X?" / "почему возникло X?"**
 1. Identify entry X from previous steps.

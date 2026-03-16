@@ -14,7 +14,7 @@ reading the source code alone:
 - Deployment quirks discovered during incidents
 - Environment variable edge cases
 - Runtime configuration constraints
-- Root causes of past bugs and how they were resolved
+- Root causes of past issues and how they were resolved
 - Non-obvious business logic behavior
 - Decisions made and the reasons behind them
 - Completed tasks and exactly which files were changed
@@ -23,7 +23,7 @@ This knowledge currently lives in people's heads, in Slack threads, in ticket
 comments, or is simply lost. Loading it all into an AI context on every session
 is wasteful and often impossible.
 
-Even when a developer remembers that a similar problem was solved before, they
+Even when a user remembers that a similar issue was resolved before, they
 cannot efficiently transfer that context to an AI assistant. The AI starts every
 session without memory of past decisions, past failures, or hard-won operational
 knowledge. It will repeat the same mistakes, ask the same clarifying questions,
@@ -36,11 +36,11 @@ and miss non-obvious constraints — unless that knowledge is explicitly provide
 This knowledge base implements a lightweight **Retrieval-Augmented Generation**
 (RAG) pattern for project-specific experience.
 
-The core idea: when a developer asks a question, the AI assistant does not answer
+The core idea: when a user asks a question, the AI assistant does not answer
 from code and general knowledge alone. Instead, it first retrieves relevant
-knowledge entries — past task solutions, bug root causes, configuration quirks,
+knowledge entries — past task solutions, issue root causes, configuration quirks,
 architectural decisions — and **injects them as context** before formulating the
-answer. The developer's question is augmented with accumulated project experience.
+answer. The user's question is augmented with accumulated project experience.
 
 ```
 Developer question
@@ -86,7 +86,7 @@ retrieval quality.
 ├── config/               <- environment variables, runtime config, secrets
 │   ├── kb-003.md
 │   └── kb-004.md
-├── bugs/                 <- known bugs, root causes, workarounds
+├── issues/                 <- known issues, root causes, workarounds
 │   ├── kb-005.md             <- kb-NNN when no tracker ticket
 │   └── JIRA-4102.md          <- tracker ticket id used directly as filename
 ├── tasks/                <- completed tasks: what changed and why
@@ -151,14 +151,14 @@ reading any entry files.
 
 ```
 tasks/JIRA-4821.md       id: JIRA-4821
-bugs/ALFA-32867.md       id: ALFA-32867
+issues/ALFA-32867.md       id: ALFA-32867
 ```
 
 **When no tracker ticket exists**: use `kb-NNN` — a single global sequential
 number regardless of which directory it lives in. The category is inferred from the directory — it is not stored in the ID or in the entry frontmatter.
 
 ```
-bugs/kb-003.md           id: kb-003
+issues/kb-003.md           id: kb-003
 deployment/kb-001.md     id: kb-001
 decisions/kb-042.md      id: kb-042
 ```
@@ -234,7 +234,7 @@ entries:
       - docker
       - arm64
       - multiarch
-    file: bugs/kb-001.md
+    file: issues/kb-001.md
 ```
 
 Field rules:
@@ -252,7 +252,7 @@ by asking `kb-expert: show index`.
 
 ### Tag Dictionary
 
-Tags are maintained in `.knowledge/tags.md` — a flat list of approved lowercase keywords. The template provides a minimal seed; add project-specific tags when creating entries. Counts, dimensions, and format: see rule `kb-tags`.
+Tags are maintained in `.knowledge/tags.md` — a flat list of approved lowercase keywords. The template provides a minimal seed; add project-specific tags when creating entries. Counts, dimensions, and format: see rule `kb-tags`. The detailed tag generation algorithm (how to choose and add tags) is defined in `kb-write.skill.md` and should be treated as the canonical source for tag selection behaviour.
 
 ```markdown
 # Tag Dictionary
@@ -296,7 +296,7 @@ tags: [reset, back-nav, pagination, v2api, user-search]
 `component` is a separate explicit field — not a tag — listing the services,
 modules, or infrastructure units an entry belongs to. A single entry may span
 multiple components; all should be listed. It improves retrieval when the
-developer asks component-scoped questions ("what issues exist in user-service?").
+user asks component-scoped questions ("what issues exist in user-service?").
 
 ```yaml
 component: [user-service]                     # single component
@@ -368,7 +368,7 @@ No backend changes were required.
 | `date`        | yes         | Date of last update in `YYYY-MM-DD`                                                              |
 | `related`     | optional    | List of IDs of causally or thematically linked entries. Omit if none.                            |
 
-When the entry ID is a tracker ticket ID, a developer who remembers
+When the entry ID is a tracker ticket ID, a user who remembers
 "we fixed something in ALFA-32867" can find the entry directly by ID.
 Entries without a tracker ticket use `kb-NNN` format (`kb-003`, `kb-042`).
 
@@ -380,7 +380,7 @@ Sections used per category:
 | Category   | Sections                                       |
 |------------|------------------------------------------------|
 | tasks      | Problem, Solution (with file:line refs), Notes |
-| bugs       | Symptom, Root Cause, Fix, Affected Files       |
+| issues       | Symptom, Root Cause, Fix, Affected Files       |
 | config     | Variable/Key, Purpose, Valid Values, Gotchas   |
 | deployment | Context, Issue, Resolution, Commands           |
 | behavior   | Observation, Explanation, Implications         |
@@ -403,7 +403,7 @@ answer — they only add noise.
 
 ## Decision Records
 
-Architectural and design decisions that capture context never visible in bugs or tasks:
+Architectural and design decisions that capture context never visible in issues or tasks:
 why a technology was chosen, what alternatives were rejected, what consequences are expected.
 
 Stored in `.knowledge/decisions/`. Use `kb-NNN` as the ID (same convention as all other entries). Optionally add a slug in the filename for human readability: `kb-042-auth-provider.md`.
@@ -469,7 +469,7 @@ User: "список пользователей сбрасывается когд
 
 ### Invocation model
 
-All write operations require explicit developer invocation.
+All write operations require explicit user invocation.
 Read operations follow the rule below.
 
 **Auto-consult rule:**
@@ -481,7 +481,7 @@ language or framework knowledge (e.g. "what is a Java interface").
 The cost of an empty lookup is minimal — one `index.yaml` read. The cost of
 missing relevant project context is a worse answer. When in doubt, consult.
 
-**Visibility:** auto-consult is always visible to the developer:
+**Visibility:** auto-consult is always visible to the user:
 > "Checking the knowledge base for relevant context..."
 
 If `kb-expert` finds matching entries, the primary agent incorporates them
@@ -502,16 +502,16 @@ not merely cite them. Concretely:
 
 1. Read each returned entry in full (frontmatter + body).
 2. Prepend entries to reasoning as "past experience context" before formulating
-   the answer — treat them as if the developer had just explained the background.
+   the answer — treat them as if the user had just explained the background.
 3. Reference entries explicitly in the answer:
    > "Based on kb-entry JIRA-4821: the email search was added to CisUsersService,
    >  so the same pattern applies here."
 4. If entries contradict each other, do not choose automatically. Present both
-   to the developer and ask explicitly:
+   to the user and ask explicitly:
    > "Entries [ID-A] (v2) and [ID-B] (v1) appear to contradict each other on
    >  this topic. Which one reflects the current state? I will use that one
    >  and you may want to update or remove the other."
-   Wait for the developer's answer before proceeding.
+   Wait for the user's answer before proceeding.
 5. **Maximum 3 entries per query.** If more are found, use the top 3 by
    relevance. Injecting more degrades answer quality and wastes context window.
 6. If only `summary` is needed to answer the question, read only `summary` from
@@ -534,23 +534,23 @@ The knowledge base is operated through explicit triggers:
 
 **Trigger 3 — task completion signal:**
 
-When the developer signals that work on a task is done:
+When the user signals that work on a task is done:
 > "done", "task complete", "JIRA-5501 closed", "закончил с задачей"
 
 `kb-expert` does not write immediately. Instead it:
 
 1. Reconstructs a brief description of what was done from the session context:
    what problem was solved, what files were changed, what was discovered.
-2. Presents that description to the developer together with a draft entry
+2. Presents that description to the user together with a draft entry
    proposal, and asks for confirmation:
    > "Task JIRA-5501 appears complete. Based on our session, here is what
    >  I understood was done:
    >  [brief description reconstructed from context]
    >  Shall I create a KB entry for this? I can refine the draft if anything
    >  is incorrect or missing."
-3. If the developer confirms — proceeds to draft via `kb-write.skill.md`.
-4. If the developer corrects the description — incorporates corrections and drafts.
-5. If the developer declines — acknowledges and does nothing.
+3. If the user confirms — proceeds to draft via `kb-write.skill.md`.
+4. If the user corrects the description — incorporates corrections and drafts.
+5. If the user declines — acknowledges and does nothing.
 
 No entry is created without an explicit affirmative response.
 
@@ -559,7 +559,7 @@ the primary agent forwards a task-complete signal to it.
 
 **Confirmation rule (all write operations):** `kb-expert` always presents
 a full draft entry and the `index.yaml` update row before writing anything.
-No file is created or modified without explicit developer confirmation.
+No file is created or modified without explicit user confirmation.
 
 ---
 
@@ -590,19 +590,19 @@ The `kb-expert` agent lives in `~/.agents/agents/`:
 ### kb-write.skill.md — responsibilities
 
 The skill operates in one of two modes determined by `kb-expert` from the
-developer's request:
+user's request:
 
 **mode: create** — new knowledge, no existing entry for this topic:
 1. Determine the new ID: tracker ticket ID if provided, otherwise next
    sequential `kb-NNN` ID.
 2. Populate all frontmatter fields per the rules below. `version: 1`.
 3. Select the correct section template from "Sections used per category" in Individual Entry Format.
-4. Draft the complete entry and present it to the developer for review.
+4. Draft the complete entry and present it to the user for review.
 5. After confirmation: write the entry file and append one row to `index.yaml`.
 
 **mode: update** — existing entry needs correction or extension:
 1. Read the existing entry file identified by ID.
-2. Apply the changes described by the developer.
+2. Apply the changes described by the user.
 3. Increment `version` by 1. Update `date` to today.
 4. Present the full updated entry and the revised `index.yaml` row for review.
 5. After confirmation: overwrite the entry file and update the `index.yaml` row in place.
@@ -617,14 +617,14 @@ developer's request:
 
 | Field           | How to populate                                                                                          |
 |-----------------|----------------------------------------------------------------------------------------------------------|
-| `id`            | Use tracker ticket ID if developer provides one. Otherwise read `index.yaml`, find the highest `kb-NNN` value across all entries, increment by 1. Zero-pad to 3 digits. |
+| `id`            | Use tracker ticket ID if user provides one. Otherwise read `index.yaml`, find the highest `kb-NNN` value across all entries, increment by 1. Zero-pad to 3 digits. |
 | `version`       | Always `1` for new entries. Increment by 1 on every subsequent update.                                  |
 | `summary`       | One sentence describing what this entry is about. Required — first field read during RAG injection and tiebreaker during lookup. |
-| `component`     | List of services or modules this entry belongs to. Required in index.yaml; recommended in frontmatter. Ask developer if entry spans multiple services. |
+| `component`     | List of services or modules this entry belongs to. Required in index.yaml; recommended in frontmatter. Ask user if entry spans multiple services. |
 | `tags`          | Cover all four dimensions: symptom, module, tech, feature. 4–8 tags (per kb-tags rule). Use the tag checklist below. |
 | `triggers`      | yes — all categories. 2–6 natural-language symptom phrases as a user would report them (per kb-tags rule). Include non-English if relevant. Primary lookup target in index.yaml. |
 | `date`          | Today's date in `YYYY-MM-DD`.                                                                            |
-| `related`       | Ask the developer if this entry was triggered by a previous entry. Populate with IDs (e.g. `[JIRA-4821, kb-003]`). Omit if none. Never guess. |
+| `related`       | Ask the user if this entry was triggered by a previous entry. Populate with IDs (e.g. `[JIRA-4821, kb-003]`). Omit if none. Never guess. |
 
 If you want to preserve the original tracker title or author name, include them in the body (for example, as the first heading or as a short note), rather than as separate frontmatter fields.
 
@@ -667,7 +667,7 @@ a user question. Agents load this skill instead of re-implementing lookup logic 
 
 ### Updating an entry
 
-When a situation changes (bug fixed, config updated, behavior changed):
+When a situation changes (issue fixed, config updated, behavior changed):
 
 1. Edit the entry file in place with the new content.
 2. Increment `version` by 1 in the frontmatter.

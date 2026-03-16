@@ -1,7 +1,7 @@
 # Knowledge Base
 
 This directory contains the project knowledge base — accumulated experience
-about deployment, configuration, bugs, architectural decisions, and non-obvious
+about deployment, configuration, issues, architectural decisions, and non-obvious
 system behavior that cannot be derived from reading the source code alone.
 
 ---
@@ -13,7 +13,7 @@ system behavior that cannot be derived from reading the source code alone.
 ├── index.yaml          <- single search index, always read first
 ├── tags.md             <- approved tag dictionary
 ├── tasks/              <- completed tasks: what changed and why
-├── bugs/               <- known bugs, root causes, workarounds
+├── issues/               <- known issues, root causes, workarounds
 ├── config/             <- environment variables, runtime config, secrets
 ├── deployment/         <- deployment, Docker, CI/CD quirks
 ├── behavior/           <- non-obvious business logic, system behavior
@@ -31,11 +31,11 @@ The template `tags.md` is a minimal seed. Add project-specific tags when you cre
 
 Entry files are named by their ID:
 - Tracker ticket ID when available: `tasks/JIRA-4821.md`
-- `kb-NNN` e.g. `bugs/kb-003.md`
+  - `kb-NNN` e.g. `issues/kb-003.md`
 
-On disk, entry files follow a uniform, filesystem-safe pattern: `kb-<sanitised-id>.md`, where `sanitised-id` is the `id` with all characters outside `[A-Za-z0-9_-]` replaced by `-` and trimmed. For example, `id: #1387` in `bugs/` becomes `bugs/kb-1387.md`.
+On disk, entry files follow a uniform, filesystem-safe pattern: `kb-<sanitised-id>.md`, where `sanitised-id` is the `id` with all characters outside `[A-Za-z0-9_-]` replaced by `-` and trimmed. For example, `id: #1387` in `issues/` becomes `issues/kb-1387.md`.
 
-`index.yaml` entries may include an optional `file` field with the explicit file path (for example, `bugs/kb-1387.md`); if `file` is absent, tools derive the path from `id` using the same naming rules.
+`index.yaml` entries may include an optional `file` field with the explicit file path (for example, `issues/kb-1387.md`); if `file` is absent, tools derive the path from `id` using the same naming rules.
 
 ---
 
@@ -51,7 +51,7 @@ When a project does not yet have a `.knowledge/` directory, initialize the knowl
 kb-expert: init kb
 ```
 
-This creates `.knowledge/` with the standard category directories (`tasks/`, `bugs/`, `config/`, `deployment/`, `behavior`, `decisions`, `misc`), a minimal `index.yaml` (`schema_version` + empty `entries`), `.knowledge/tags.md` (optionally seeded with a few module tags from `repo_map.md` if it exists), `.knowledge/README.md`, and a bootstrap entry `.knowledge/misc/kb-000-knowledge-base.md` describing the KB itself.
+This creates `.knowledge/` with the standard category directories (`tasks/`, `issues/`, `config/`, `deployment/`, `behavior`, `decisions`, `misc`), a minimal `index.yaml` (`schema_version` + empty `entries`), `.knowledge/tags.md` (optionally seeded with a few module tags from `repo_map.md` if it exists), `.knowledge/README.md`, and a bootstrap entry `.knowledge/misc/kb-000-knowledge-base.md` describing the KB itself.
 
 If `.knowledge/` already exists, `kb-expert: init kb` only reports the current KB status and does not modify any files. During initialization, the project `.gitignore` (if present at the repository root) is also updated to exclude `.knowledge/` from version control.
 
@@ -73,7 +73,7 @@ kb-expert: create entry for JIRA-5501, we fixed nginx timeout in prod
 ### Update an existing entry
 
 ```
-kb-expert: update JIRA-4821, sorting bug was also fixed there
+kb-expert: update JIRA-4821, sorting issue was also fixed there
 ```
 
 ### Task complete — prompt for entry creation
@@ -95,7 +95,7 @@ kb-expert: show index
 ## Auto-consult
 
 The primary AI agent must consult the knowledge base automatically when
-your question touches deployment, configuration, known bugs, past tasks,
+your question touches deployment, configuration, known issues, past tasks,
 behavior quirks, or architectural decisions — topics where KB context
 would materially improve the answer. When this happens you will see:
 
