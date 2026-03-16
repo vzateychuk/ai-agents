@@ -2,13 +2,7 @@
 
 ## Purpose
 
-This document describes the concept of a project-level knowledge base: what it is,
-how it differs from `repo_map.md`, how it is structured, how AI uses it, and what
-its trade-offs are.
-
-This document is the reference for creating AI instructions and rules to implement
-this concept in any project.
-
+This document describes the concept of a project-level knowledge base.
 
 ---
 
@@ -68,14 +62,13 @@ the difference between a generic answer and a correct answer for this project.
 
 Unlike vector-database RAG, this implementation requires no embeddings, no
 external services, and no GPU. The index is a YAML file. Retrieval is keyword
-matching on `triggers` and `tags`. This is sufficient for project-scale knowledge
-(up to ~500 entries) and works in any environment including air-gapped VDI.
+matching on `triggers` and `tags`. This is sufficient for small-medium project-scale knowledge
+(up to ~500 entries) and works in any environment including VDI.
 
 The implementation works with any AI assistant that has file-system access.
-It does not require vector databases, embeddings, semantic search, or any
-external services. The index is intentionally a single file — splitting it
-into per-category sub-indexes provides no benefit since search is by triggers
-and tags, not by category. The correct scaling strategy is index compression
+The index is intentionally a single file — splitting it
+sub-indexes provides no benefit since search is by triggers
+and tags. The correct scaling strategy is index compression
 via `kb-compress.skill.md`, which prunes low-signal entries while preserving
 retrieval quality.
 
@@ -145,7 +138,7 @@ No prefix table needed — the directory name carries the category.
 ## index.yaml Format
 
 `index.yaml` is the single file an AI reads when performing a knowledge lookup.
-It must stay compact — one row per knowledge entry. SUMMARY is intentionally
+It must stay compact. SUMMARY is intentionally
 absent from the index; it lives in the entry file and is read only when needed
 to disambiguate between candidates.
 
@@ -255,13 +248,11 @@ developer asks component-scoped questions ("what issues exist in user-service?")
 ```yaml
 component: [user-service]                     # single component
 component: [user-service, users-controller]   # entry spans two services
-component: [infrastructure]                   # no single service owner
+component: [infra]                   # no single service owner
 ```
 
 `component` is required in `index.yaml`. In the entry frontmatter it is optional
 but recommended.
-
-
 
 ---
 
@@ -273,12 +264,11 @@ Each knowledge file follows this structure:
 ---
 id: JIRA-4821
 version: 1
-summary: "Added email search field to user management via CisUsersService and ManageUserComponent."
+summary: "Added email search field to user management via UsersService."
 component: [user-service]
 tags: [missing-feature, user-list, user-service, manage-user, user-search]
 triggers: ["email search missing", "нет поиска по email", "cannot find user by email"]
 date: 2026-01-15
-subject: "Add email search to user management screen"
 ---
 
 # and for an entry without a tracker ticket:
@@ -302,7 +292,7 @@ Users could only be searched by username. Email search was missing.
 ## Solution
 - Added `email` field to `SearchUserCriteria` model
   (src/app/_models/search-user-criteria.ts)
-- Extended `searchUsers()` in `CisUsersService`
+- Extended `searchUsers()` in `UsersService`
   (src/app/services/cis-users-service.ts:87)
 - Added email input in `ManageUserComponent`
   (src/app/components/user/manage-user/manage-user.component.ts:134)
@@ -323,9 +313,7 @@ No backend changes were required.
 | `tags`        | yes         | Typed keywords covering symptom / module / tech / feature dimensions                            |
 | `triggers`    | yes         | Natural-language symptom phrases describing the problem as a user would report it. Primary lookup target in index.yaml. Without triggers, retrieval degrades to tags-only. |
 | `date`        | yes         | Date of last update in `YYYY-MM-DD`                                                              |
-| `subject`     | optional    | Verbatim short title of the ticket as written in the tracker. Omit if no tracker ticket.         |
 | `related`     | optional    | List of IDs of causally or thematically linked entries. Omit if none.                            |
-| `author`      | optional    | `ai-assisted` or developer name/handle. May be omitted or placed in body.                         |
 
 When the entry ID is a tracker ticket ID, a developer who remembers
 "we fixed something in ALFA-32867" can find the entry directly by ID.
@@ -546,7 +534,6 @@ The `kb-expert` agent lives in `~/.agents/agents/`:
 └── kb-expert.agent.md
 ```
 
-
 ### kb-write.skill.md — responsibilities
 
 The skill operates in one of two modes determined by `kb-expert` from the
@@ -584,9 +571,9 @@ developer's request:
 | `tags`          | Cover all four dimensions: symptom, module, tech, feature. 4–8 tags (per kb-tags rule). Use the tag checklist below. |
 | `triggers`      | yes — all categories. 2–6 natural-language symptom phrases as a user would report them (per kb-tags rule). Include non-English if relevant. Primary lookup target in index.yaml. |
 | `date`          | Today's date in `YYYY-MM-DD`.                                                                            |
-| `subject`       | Populate verbatim from the ticket title if the ID is a tracker ticket. Omit otherwise.                  |
 | `related`       | Ask the developer if this entry was triggered by a previous entry. Populate with IDs (e.g. `[JIRA-4821, kb-003]`). Omit if none. Never guess. |
-| `author`        | Optional. Use `ai-assisted` when generated by an AI agent if including. May be omitted or placed in body. |
+
+If you want to preserve the original tracker title or author name, include them in the body (for example, as the first heading or as a short note), rather than as separate frontmatter fields.
 
 
 ### Tag generation checklist
@@ -603,43 +590,17 @@ Before proposing an entry, AI must verify tags cover all four dimensions:
 If a dimension genuinely does not apply, it may be omitted — but AI must not
 omit it simply because it is harder to infer.
 
-### index.yaml update rules
+### index.yaml rules
 
-After writing the entry file, append one entry to `index.yaml`:
+There are two distinct operations on `index.yaml`:
 
-```yaml
-  - id: JIRA-5501
-    component: [infrastructure]
-    related: []
-    triggers:
-      - 504 in prod
-      - timeout under load
-      - nginx не отвечает
-    tags:
-      - timeout
-      - 504
-      - nginx
-      - prod
+- **Create (new entry):**
+  - After writing a new entry file, **append exactly one new item** to the `entries` list in `index.yaml`.
+  - That item must reuse the same `id` as the entry file and populate `component`, `triggers`, `tags`, and `related` according to the field rules above.
 
-  - id: kb-014
-    component: [infrastructure]
-    related: [JIRA-5501]
-    triggers:
-      - crashes after deploy
-      - падает после деплоя
-    tags:
-      - crash
-      - deploy
-      - startup
-```
-
-Field rules:
-- `id` — tracker ticket ID if one exists, otherwise `kb-NNN`. Must match the entry file name exactly.
-- `component` — list of services or modules this entry belongs to. Required. Use list syntax even for a single value.
-- `related` — list of related IDs. Empty list if none.
-- `triggers` — 2–6 natural-language symptom phrases (per kb-tags rule). Include non-English if relevant.
-- `tags` — 4–8 most discriminating tags from `tags.md` (per kb-tags rule). Full list lives in the entry file.
-- `summary` is absent from the index — it lives in the entry file only.
+- **Update (existing entry):**
+  - When an entry is edited in place (content, tags, triggers, component, related):
+  - **Do not append a new item.** Instead, locate the existing item in `entries` by `id` and update its fields in place so that `index.yaml` stays a 1:1 mirror of the entry set.
 
 ### kb-lookup.skill.md — responsibilities
 
@@ -665,7 +626,7 @@ Entry file frontmatter after update:
 id: kb-001
 version: 2              # incremented from 1
 date: 2026-03-10        # updated
-component: [infrastructure]
+component: [infra]
 tags:
   - auth0
   - clientId
@@ -679,7 +640,7 @@ related: []
 Corresponding `index.yaml` entry after update:
 ```yaml
   - id: kb-001
-    component: [infrastructure]
+    component: [infra]
     related: []
     triggers:
       - clientId wrong in prod

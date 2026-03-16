@@ -33,11 +33,7 @@ Never delete or modify anything without explicit developer confirmation.
 
 ### Step 1 — Count and report
 
-Read `index.yaml`. Report:
-```
-index.yaml: 512 entries
-Running compression audit...
-```
+Read `index.yaml`, count entries, and log a short status message (entry count + "Running compression audit...").
 
 ### Step 2 — Detect duplicate triggers
 
@@ -52,20 +48,11 @@ entry B triggers: ["docker build failure", "build fails arm64"]
 ```
 → flag as duplicate trigger candidates.
 
-For each group: present both entries to the developer in full and ask explicitly:
-
-> "Entries [ID-A] and [ID-B] have near-identical triggers. In a RAG lookup
->  both would appear together, wasting a context slot.
->  — [ID-A] (v1, date): [one-line summary]
->  — [ID-B] (v2, date): [one-line summary]
->  Options:
->    1. Merge into one entry — which one should be the base? (content from the
->       other will be incorporated and the other deleted)
->    2. Keep both — update triggers to differentiate them
->    3. Delete one — which one is outdated?"
-
-Do not propose a preferred option. The developer decides.
-Do not proceed until an explicit choice is made.
+For each group: show both entries (ID, version, date, one-line summary) and ask the developer to choose one of:
+- merge into one entry (specify base ID; content from the other is incorporated and the other deleted)
+- keep both and adjust triggers to differentiate them
+- delete one entry as outdated.
+Do not propose a preferred option. Wait for an explicit choice per group.
 
 ### Step 2b — Detect RAG slot waste
 
@@ -76,19 +63,11 @@ describe the same problem domain).
 These entries will consistently co-appear in top-3 retrieval for the same
 query, leaving only 1 slot for distinct context.
 
-For each such pair: present both entries in full and ask explicitly:
-
-> "Entries [ID-A] and [ID-B] overlap significantly in triggers and tags.
->  In RAG retrieval both will consistently appear together, leaving only
->  1 slot for distinct context.
->  — [ID-A] (v?, date): [one-line summary]
->  — [ID-B] (v?, date): [one-line summary]
->  Options:
->    1. Merge — which one should be the base?
->    2. Keep both — differentiate triggers so they serve different queries
->    3. Delete one — which one is less relevant today?"
-
-Do not propose a preferred option. The developer decides.
+For each such pair: show both entries (ID, version, date, one-line summary) and ask the developer to choose one of:
+- merge into one entry (specify base ID)
+- keep both and differentiate triggers so they serve different queries
+- delete one entry as less relevant today.
+Do not propose a preferred option.
 
 ---
 
@@ -110,9 +89,7 @@ representative of their dimension (symptom / module / tech / feature).
 - `version` is still `1` (never updated)
 - Category is `tasks` or `bugs` (not `decisions` or `behavior` — these age better)
 
-For each flagged entry: present a summary and ask the developer:
-> "Entry [ID] has not been updated or referenced in over a year.
->  Keep, update, or remove?"
+For each flagged entry: present ID, date, version, category, and summary, then ask: keep, update, or remove?
 
 Do not flag entries in `decisions/` — ADRs are intentionally permanent.
 
@@ -125,49 +102,32 @@ Present the current list and ask the developer to confirm the trim.
 
 ### Step 6 — Report and confirm
 
-Present a compression summary before making any changes:
+Before applying any changes, present a summary:
+- number of duplicate-trigger groups
+- number of overlapping RAG-slot pairs
+- number of entries with redundant tags
+- number of stale entries
+- number of entries with trigger bloat
+- estimated size reduction.
 
-```
-Compression audit complete.
-
-Duplicate triggers:   3 groups  (6 entries)
-Redundant tags:       11 tags across 8 entries
-Stale entries:        7 entries
-Trigger bloat:        4 entries (>6 triggers)
-
-Estimated size reduction: ~18% (~94 entries / tokens)
-
-Proceed with review? (y/n)
-```
-
-If developer confirms, walk through each category one at a time,
-presenting proposed changes and waiting for per-item confirmation.
+Ask: "Proceed with review? (y/n)". If confirmed, walk through each category one at a time, presenting proposed changes and waiting for per-item confirmation.
 
 ### Step 7 — Apply confirmed changes
 
 For each confirmed change:
 - **Remove entry**: delete the entry from `index.yaml` and delete the entry file.
-- **Merge entries**: keep one entry file, update it with content from the other,
-  increment `version`, update `index.yaml`. Delete the merged entry file.
-- **Trim tags/triggers**: update the entry in `index.yaml` only.
-  Entry files are updated only if their frontmatter tags also changed.
+- **Merge entries**: keep one entry file as base, update it with content from the other, increment `version`, update `index.yaml`, then delete the merged entry file.
+- **Trim tags/triggers**: update the entry in `index.yaml` only; update the entry file frontmatter only if its tags changed.
 
-Update `tags.md` to remove any tags that are no longer referenced by any entry.
+After all changes, update `tags.md` to remove any tags that are no longer referenced by any entry.
 
 ---
 
 ## Output after completion
 
-```
-Compression complete.
-
-Removed:  12 entries
-Merged:    4 entries
-Trimmed:  15 entries (tags / triggers only)
-
-index.yaml: 496 entries  (was 512)
-tags.md:    29 tags      (was 34)
-```
+Print a short summary:
+- how many entries were removed, merged, and trimmed
+- old vs new sizes of `index.yaml` and `tags.md`.
 
 ---
 

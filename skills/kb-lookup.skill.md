@@ -29,18 +29,11 @@ Examples:
 
 ### Step 1 — Decompose the question
 
-Extract search terms from the input in all languages present:
-- Symptoms: what the user observes (errors, unexpected behaviour, missing features)
+Extract search terms from the input (all languages present):
+- Symptoms: observed behaviour, errors, missing features
 - Entities: components, services, features mentioned
 - Actions: what triggered the problem
-- Infer related technical terms from context
-
-Example:
-```
-Input: "список сбрасывается когда нажимаю назад"
-Extracted: reset, сбрасывается, user list, back button, back navigation
-Inferred:  pagination (from "list + resets")
-```
+- Inferred technical terms from context (e.g. "list + resets" → "pagination").
 
 If input is a bare ID or partial number (e.g. "1234", "JIRA-1234"):
 → skip to Step 2 ID match directly, do not decompose.
@@ -65,9 +58,7 @@ If input was a bare ID or partial number:
 → match against ID field exactly or by suffix (e.g. "1234" matches "JIRA-1234").
 → apply early-exit rule.
 
-After step: apply early-exit rule.
-If 0 candidates → continue to Step 3.
-If >1 candidates → continue to Step 3.
+Apply early-exit rule. If 0 or >1 candidates remain, continue to Step 3.
 
 ---
 
@@ -79,8 +70,7 @@ Run only if Step 2 produced 0 candidates or more than 1 candidate.
 - If >1 candidates from Step 2: scan `tags` and `component` list within that set to reduce it.
 
 After step: apply early-exit rule.
-If still 0 candidates → go to Step 6 (fallback).
-If >1 candidates → continue to Step 4.
+If still 0 candidates → go to Step 6 (fallback). If >1 candidates → continue to Step 4.
 
 ---
 
@@ -88,15 +78,12 @@ If >1 candidates → continue to Step 4.
 
 Run only if Step 3 left 2 or more candidates.
 
-Read only the candidate entry files — not the full knowledge base.
+Read only the candidate entry files (not the full knowledge base).
 Compare SUMMARY content against the original question.
-Select the single best match. If two entries are equally relevant, return both.
+Select the single best match; if two entries are equally relevant, return both.
 
-After step: apply early-exit rule.
-If >1 candidates remain equally relevant → return all of them, ranked by relevance.
-
-SUMMARY is never searched across the full knowledge base.
-It is used only as a tiebreaker between candidates already found in Steps 2–3.
+After step: apply early-exit rule. If >1 candidates remain equally relevant → return all of them, ranked by relevance.
+SUMMARY is used only as a tiebreaker between candidates already found in Steps 2–3.
 
 ---
 
@@ -107,16 +94,14 @@ Run only when the developer explicitly asks about causes or consequences.
 **"What caused X?" / "почему возникло X?"**
 1. Identify entry X from previous steps.
 2. Read `related` field from X's frontmatter.
-3. For each ID in `related`: read that entry file.
-4. Repeat recursively until `related` is empty or absent.
-5. Present the full chain: X ← parent ← grandparent ...
+3. For each ID in `related`: read that entry file and repeat recursively until `related` is empty or absent.
+4. Present the chain: X ← parent ← grandparent ...
 
 **"What did X cause?" / "что породило X?"**
 1. Identify entry X from previous steps.
 2. Grep RELATED column in `index.yaml` for X's ID.
-3. For each matching row: read that entry file.
-4. Repeat recursively if developer requests full downstream chain.
-5. Present the full chain: X → child → grandchild ...
+3. For each matching row: read that entry file and, if requested, recurse to build the full downstream chain.
+4. Present the chain: X → child → grandchild ...
 
 ---
 
@@ -124,58 +109,21 @@ Run only when the developer explicitly asks about causes or consequences.
 
 If no candidates found after all steps, respond:
 
-> "No entries found in the knowledge base for this topic.
->  Do you want to create one? If yes, describe what was discovered
->  and I will draft the entry for your review."
+> "No entries found in the knowledge base for this topic. Do you want to create one? If yes, describe what was discovered and I will draft the entry for your review."
 
-Do NOT fabricate knowledge. Do NOT answer from code inference alone.
-Do NOT silently return an empty result without the above message.
+Do NOT fabricate knowledge or answer from code inference alone. Do NOT silently return an empty result without the above message.
 
 ---
 
 ## Output format
 
-Return at most 3 entries, ranked by relevance. If more candidates were found,
-note how many were omitted: "3 of 5 matches shown."
+Return at most 3 entries, ranked by relevance. If more candidates were found, note how many were omitted (e.g. "3 of 5 matches shown.").
 
-Entries are returned as context for injection — not as search results to browse.
-The primary agent will prepend them to its reasoning before answering.
+Entries are returned as context for injection — not as search results to browse. The primary agent will prepend them to its reasoning before answering.
 
 For each entry return:
 1. Entry ID and file path
-2. `summary` field (one line — allows primary agent to decide if full body is needed)
+2. `summary` field (one line — allows the primary agent to decide if full body is needed)
 3. Full entry content (frontmatter + body)
 
-If the primary agent needs only `summary` to answer (simple factual question),
-it may skip reading the full body. For complex questions, full body is always used.
-
-Example output (single result):
-```
-Found 1 match (showing 1 of 1):
-
-[ALFA-32867]  .knowledge/bugs/ALFA-32867.md
-summary: User list page size resets when navigating back due to missing state preservation in v2api pagination.
-
---- full entry ---
-...
-```
-
-Example output (multiple results):
-```
-Found 3 matches (showing 3 of 5):
-
-[ALFA-32867]  .knowledge/bugs/ALFA-32867.md
-summary: User list page size resets on back navigation.
-
-[JIRA-4102]  .knowledge/bugs/JIRA-4102.md
-summary: Auth client crashes on null grants array in update-client.
-
-[kb-008]  .knowledge/behavior/kb-008.md
-summary: RoleGuard checks scopes from JWT token, not from database.
-```
-
-If related chain was requested, append after entries:
-```
-Related chain for ALFA-32867:
-  ALFA-32867 (bugs)  ↔  JIRA-4821 (tasks)
-```
+If the primary agent needs only `summary` to answer a simple factual question, it may skip reading the full body; for complex questions, use the full body.
