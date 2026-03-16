@@ -1,7 +1,7 @@
 ---
 name: kb-init
 description: Initialize .knowledge/ for a new project. Create minimal structure, index, tags, README, and one bootstrap entry. Use when starting KB in a repository that does not yet have .knowledge/.
-tags: kb, knowledge-base, init, bootstrap
+tags: kb, knowledge-base, init, about
 ---
 
 # kb-init.skill.md
@@ -83,7 +83,14 @@ entries: []
      # Tag Dictionary
 
      ---
+     about
      kb
+     kb-compress
+     kb-init
+     kb-lookup
+     kb-write
+     knowledge-base
+     rag
      ```
 
 2. If `repo_map.md` exists:
@@ -125,10 +132,10 @@ Create a single bootstrap entry that documents the KB itself. If the bootstrap f
 2. Frontmatter fields:
    - `id: kb-000-knowledge-base`
    - `version: 1`
-   - `summary`: one sentence describing the purpose of the project knowledge base, short concept of RAG used.
+   - `summary`: one sentence describing the purpose of the project knowledge base and the idea of using RAG (retrieval-augmented context) for project experience.
    - `component`: `[kb]`.
-   - `tags`: 4–8 tags compliant with rule `kb-tags`. Prefer `kb`, and 3-7 module tags taken from the project structure derived from `repo_map.md` (if it exists) or from the project README.md.
-   - `triggers`: 2–6 phrases taken from knowledge base concept.
+   - `tags`: 4–8 tags compliant with rule `kb-tags` that answer questions like "зачем нужна база знаний?" and "как её использовать?". Prefer tags such as `knowledge-base`, `about`, `rag`, `kb-init`, `kb-lookup`, `kb-write`, `kb-compress`, and only add module tags from `repo_map.md` or README if they are clearly relevant.
+   - `triggers`: 2–6 phrases taken from the knowledge base concept describing what the KB is for and how the user invokes `kb-expert` (init, lookup, write, compress).
    - `date`: today’s date in `YYYY-MM-DD`.
    - `related`: empty list or omitted.
 
