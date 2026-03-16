@@ -9,7 +9,7 @@ globs: "**/*.java"
 When developing in Java and **Apache Commons** (e.g. `org.apache.commons.lang3.StringUtils`) is available in the project, prefer Commons utilities over manual checks:
 
 - **Blank strings:** use `StringUtils.isBlank(sort)` instead of `sort == null || sort.isBlank()`.
-- Prefer other `StringUtils` / `ObjectUtils` helpers where they make the intent clearer and avoid null/edge-case bugs.
+- Prefer other `StringUtils` / `ObjectUtils` helpers where they make the intent clearer and avoid null/edge-case issues.
 
 Apply this in both main and test code when the dependency is on the classpath.
 

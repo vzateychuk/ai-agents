@@ -8,7 +8,7 @@ tags: refactor, rename, extract, restructure, cleanup
 
 ## Principles
 
-- Behavior must not change. A refactoring that alters behavior is a bug fix or feature, not a refactor.
+- Behavior must not change. A refactoring that alters behavior is an issue fix or feature, not a refactor.
 - Run tests before and after every refactoring step.
 - Prefer small, verifiable steps over large rewrites.
 

@@ -10,6 +10,7 @@ It stores reusable global instructions, rules, prompts, skills, and custom agent
 - `prompts/` - reusable prompt templates (see list below)
 - `agents/` - custom specialized agent profiles
 - `skills/` - portable skills shared across Cursor, Claude Code, and Copilot
+- `knowledge/` - project knowledge base templates and concept docs (RAG over project experience; see `knowledge/knowledge-base.concept.md`)
 
 ---
 
