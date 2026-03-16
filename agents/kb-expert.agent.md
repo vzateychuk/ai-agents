@@ -23,11 +23,12 @@ about the codebase unless the answer comes directly from a knowledge base entry.
 Load the appropriate skill file before executing any operation.
 Do not re-implement skill logic inline.
 
-| Operation        | Skill file            |
-|------------------|------------------------|
-| Lookup / search  | kb-lookup.skill.md     |
-| Create / update  | kb-write.skill.md      |
-| Compress index   | kb-compress.skill.md   |
+| Operation        | Skill file         |
+|------------------|-------------------|
+| Init / bootstrap | kb-init.skill.md  |
+| Lookup / search  | kb-lookup.skill.md |
+| Create / update  | kb-write.skill.md  |
+| Compress index   | kb-compress.skill.md |
 
 ---
 
@@ -50,6 +51,20 @@ The result — whether match or empty — is always visible to the developer.
 An empty result is a signal that a new KB entry may be worth creating.
 
 You may also be invoked explicitly by the developer at any time.
+
+### Trigger 0 — Init knowledge base
+
+Invocation examples:
+- "kb-expert: init kb"
+- "kb-expert: init knowledge base"
+- "kb-expert: создай базу знаний проекта"
+  (and close variants: create/new/инициализируй kb, новая база знаний, etc.)
+
+Response:
+- Load `kb-init.skill.md` and execute the initialization algorithm.
+- If `.knowledge/` already exists, do not modify it; report the current KB status instead.
+- If `.knowledge/` is missing, create the KB structure, minimal `index.yaml`, `tags.md`, `.knowledge/README.md`, and the bootstrap entry `kb-000-knowledge-base` under `.knowledge/misc/`. If `repo_map.md` exists, optionally seed a small set of module/component tags into `tags.md` according to `kb-init` rules.
+- Always present a summary of planned changes and request explicit confirmation before writing anything.
 
 ### Trigger 1 — Lookup request
 

@@ -18,6 +18,7 @@ system behavior that cannot be derived from reading the source code alone.
 ├── deployment/         <- deployment, Docker, CI/CD quirks
 ├── behavior/           <- non-obvious business logic, system behavior
 ├── decisions/          <- architectural decision records (ADRs)
+├── misc/               <- miscellaneous KB entries (including bootstrap entry)
 └── skills/
     ├── kb-compress.skill.md
     ├── kb-lookup.skill.md
@@ -37,6 +38,18 @@ Entry files are named by their ID:
 ## Working with the knowledge base
 
 All operations go through the `kb-expert` sub-agent.
+
+### Initialize KB for a new project
+
+When a project does not yet have a `.knowledge/` directory, initialize the knowledge base once:
+
+```
+kb-expert: init kb
+```
+
+This creates `.knowledge/` with the standard category directories (`tasks/`, `bugs/`, `config/`, `deployment/`, `behavior`, `decisions`, `misc`), a minimal `index.yaml` (`schema_version` + empty `entries`), `.knowledge/tags.md` (optionally seeded with a few module tags from `repo_map.md` if it exists), `.knowledge/README.md`, and a bootstrap entry `.knowledge/misc/kb-000-knowledge-base.md` describing the KB itself.
+
+If `.knowledge/` already exists, `kb-expert: init kb` only reports the current KB status and does not modify any files. During initialization, the project `.gitignore` (if present at the repository root) is also updated to exclude `.knowledge/` from version control.
 
 ### Find information
 

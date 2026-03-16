@@ -94,13 +94,49 @@ retrieval quality.
 │   └── kb-007.md
 ├── behavior/             <- non-obvious business logic, system behavior, edge cases
 │   └── kb-008.md
-└── decisions/            <- architectural decision records (ADRs)
-    ├── kb-042-auth-provider.md
-    └── kb-043-pagination-model.md
+├── decisions/            <- architectural decision records (ADRs)
+│   ├── kb-042-auth-provider.md
+│   └── kb-043-pagination-model.md
+└── misc/                 <- miscellaneous KB entries (bootstrap and helpers)
+    └── kb-000-knowledge-base.md
 ```
 
 Categories may be extended as the project grows. New categories should be added
 as new top-level directories and documented in `index.yaml`.
+
+---
+
+## Initialization
+
+For a new project without `.knowledge/`, the first step is to initialize the knowledge base.
+
+- Initialization is performed via the `kb-expert` sub-agent:
+
+  ```
+  kb-expert: init kb
+  ```
+
+- If `.knowledge/` already exists:
+  - No files or directories are modified.
+  - The agent reports the current KB status (which core files and category directories are present).
+
+- If `.knowledge/` does not exist:
+  - Create `.knowledge/` and the standard category directories.
+  - Create `.knowledge/index.yaml` with:
+    - `schema_version: 1`
+    - `entries: []`
+  - Create `.knowledge/tags.md` with a minimal tag dictionary.
+  - Create `.knowledge/README.md` with a short description and example `kb-expert` commands.
+  - Create a bootstrap entry `.knowledge/misc/kb-000-knowledge-base.md` that documents the KB itself and how to use it.
+  - Append a matching row for `kb-000-knowledge-base` to `entries` in `index.yaml`.
+  - Ensure the project `.gitignore` (if present at the repository root) contains a rule to exclude `.knowledge/` from version control; if `.gitignore` is missing, initialization does not create it automatically.
+
+If `repo_map.md` exists in the project root during initialization:
+- It may be used to derive a small set of module/component names and seed corresponding tags into `.knowledge/tags.md`:
+  - lowercased
+  - spaces and slashes replaced with hyphens
+  - added only if not already present and in line with `kb-tags` rules (search before add, alphabetical order, no synonyms).
+- Initialization does **not** create additional KB entries directly from `repo_map.md`; it only uses it to enrich the tag dictionary and the bootstrap entry where appropriate.
 
 ---
 
