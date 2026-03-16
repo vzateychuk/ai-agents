@@ -162,4 +162,3 @@ After running all steps, return a summary containing:
 - Any migration warnings for a pre-existing `index.yaml` (if applicable).
 
 No changes are written without explicit user confirmation from `kb-expert`.
-
