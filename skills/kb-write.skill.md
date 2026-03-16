@@ -1,7 +1,7 @@
 ---
 name: kb-write
 description: Create or update .knowledge/ entries and index.yaml rows. Use when the user asks to create or update a KB entry (tasks, bugs, config, deployment, behavior, decisions).
-tags: knowledge-base, write, create, update
+tags: kb, knowledge-base, write, create, add, update
 ---
 
 # kb-write.skill.md
@@ -37,13 +37,25 @@ Mode is determined by ID match:
 ### Step 1 — Determine the entry ID
 
 If the developer provided a tracker ticket ID (`JIRA-1234`, `ALFA-32867`, `OCRV-654987`):
-→ use it as-is as the entry ID and file name.
+→ use it as-is as the entry ID.
 
 Otherwise:
 → read `.knowledge/index.yaml`
 → find the highest `kb-NNN` value across ALL entries in index.yaml
 → increment by 1, zero-pad to 3 digits
 → example: highest `kb-041` → new ID is `kb-042`
+
+### Step 1b — Determine the file path
+
+Derive the entry file name from `id` according to the file-naming rules:
+
+- Start from `id`.
+- Replace every character not in `[A-Za-z0-9_-]` with `-`.
+- Optionally collapse consecutive `-` and trim leading/trailing `-`.
+- If the result is empty, use a simple fallback such as `entry` or `entry-<number>`.
+
+The final file name is `kb-<sanitised-id>.md` inside the chosen category directory  
+(for example, `bugs/kb-1387.md` for `id: #1387`).
 
 ### Step 2 — Determine the target directory
 
@@ -62,7 +74,7 @@ Infer category from context. When unclear, ask the developer to confirm.
 
 | Field       | How to populate                                                                                     |
 |-------------|-----------------------------------------------------------------------------------------------------|
-| `id`        | From Step 1.                                                                                        |
+| `id`        | From Step 1. File paths are always derived from this ID as `kb-<sanitised-id>.md`.                  |
 | `version`   | Always `1` for new entries.                                                                         |
 | `tags`      | 4–8 tags from tags.md, covering four dimensions. Apply rule kb-tags.                               |
 | `triggers`  | 2–6 natural-language symptom phrases. Per rule kb-tags. Required for all categories — primary lookup target in index.yaml. |
@@ -100,7 +112,7 @@ Proposed entry: tasks/JIRA-4821.md
 ---
 id: JIRA-4821
 version: 1
-summary: "Added email search field to user management via UsersService and ManageUserComponent."
+summary: "Added email search field to user management via UsersService"
 component: [user-service]
 tags: [missing-feature, user-list, email, user-search]
 triggers:

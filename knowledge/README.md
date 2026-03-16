@@ -33,6 +33,8 @@ Entry files are named by their ID:
 - Tracker ticket ID when available: `tasks/JIRA-4821.md`
 - `kb-NNN` e.g. `bugs/kb-003.md`
 
+On disk, entry files follow a uniform, filesystem-safe pattern: `kb-<sanitised-id>.md`, where `sanitised-id` is the `id` with all characters outside `[A-Za-z0-9_-]` replaced by `-` and trimmed. For example, `id: #1387` in `bugs/` becomes `bugs/kb-1387.md`.
+
 ---
 
 ## Working with the knowledge base

@@ -191,7 +191,7 @@ The primary agent then:
     - 500
 ```
 
-- `id` — tracker ticket ID or `kb-NNN`. Unique. Used as file name.
+- `id` — tracker ticket ID or `kb-NNN`. Unique key for the entry; file names are derived from this ID as `kb-<sanitised-id>.md` (only `[A-Za-z0-9_-]` kept).
 - `component` — list of services or modules this entry belongs to. Required. List syntax even for one value.
 - `related` — list of IDs of causally or thematically linked entries.
 - `triggers` — 2–6 natural-language symptom phrases (per rule kb-tags). Primary search target.

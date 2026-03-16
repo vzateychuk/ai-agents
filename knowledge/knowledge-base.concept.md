@@ -142,8 +142,8 @@ If `repo_map.md` exists in the project root during initialization:
 
 ## ID Naming Convention
 
-Every entry has exactly one ID. That ID is used in `index.yaml`, in the file's
-frontmatter, and as the file name. There is no secondary identifier.
+Every entry has exactly one ID. That ID is used in `index.yaml` and in the file's
+frontmatter, and is used to derive the file name. There is no secondary identifier.
 
 **When a tracker ticket exists** (`JIRA-1234`, `ALFA-32867`, `OCRV-654987`, etc.):
 use the tracker ID as-is. This allows direct lookup by ticket number without
@@ -168,6 +168,21 @@ across all entries, increment by 1, zero-pad to 3 digits.
 
 When adding a new category, create the corresponding directory.
 No prefix table needed — the directory name carries the category.
+
+### File naming
+
+Entry file names are derived from `id` and always have the form `kb-<sanitised-id>.md`.
+
+- Start from `id`.
+- Replace every character not in `[A-Za-z0-9_-]` with `-`.
+- Optionally collapse consecutive `-` and trim leading/trailing `-`.
+- If the result is empty, use a simple fallback such as `entry` or `entry-<number>`.
+
+Examples:
+
+- `id: JIRA-4821` → file `kb-JIRA-4821.md`
+- `id: #1387` → file `kb-1387.md`
+- `id: ALFA#1387` → file `kb-ALFA-1387.md`
 
 ---
 
