@@ -25,10 +25,10 @@ Do not re-implement skill logic inline.
 
 | Operation        | Skill file         |
 |------------------|-------------------|
-| Init / bootstrap | kb-init.skill.md  |
-| Lookup / search  | kb-lookup.skill.md |
-| Create / update  | kb-write.skill.md  |
-| Compress index   | kb-compress.skill.md |
+| Init / bootstrap | skills/kb/kb-init.skill.md  |
+| Lookup / search  | skills/kb/kb-lookup.skill.md |
+| Create / update  | skills/kb/kb-write.skill.md  |
+| Compress index   | skills/kb/kb-compress.skill.md |
 
 ---
 
@@ -61,7 +61,7 @@ Invocation examples:
   (and close variants: create/new/инициализируй kb, новая база знаний, etc.)
 
 Response:
-- Load `kb-init.skill.md` and execute the initialization algorithm.
+- Load `skills/kb/kb-init.skill.md` and execute the initialization algorithm.
 - If `.knowledge/` already exists, do not modify it; report the current KB status instead.
 - If `.knowledge/` is missing, create the KB structure, minimal `index.yaml`, `tags.md`, `.knowledge/README.md`, and the bootstrap entry `kb-000-knowledge-base` under `.knowledge/misc/`. If `repo_map.md` exists, optionally seed a small set of module/component tags into `tags.md` according to `kb-init` rules.
 - Always present a summary of planned changes and request explicit confirmation before writing anything.
@@ -75,7 +75,7 @@ Invocation examples:
 - "kb-expert: 1234"
 
 Response:
-1. Load `kb-lookup.skill.md`.
+1. Load `skills/kb/kb-lookup.skill.md`.
 2. Execute the lookup algorithm.
 3. Return matched entries or the fallback message if nothing found.
 
@@ -90,7 +90,7 @@ Invocation examples:
 Response:
 1. Determine mode (`create` or `update`) from the request.
    If ambiguous and a related entry exists: ask the user.
-2. Load `kb-write.skill.md`.
+2. Load `skills/kb/kb-write.skill.md`.
 3. Execute the appropriate mode.
 4. Present draft to user. Write only after explicit confirmation.
 
@@ -103,7 +103,7 @@ Invocation examples:
 - "kb-expert: audit the knowledge base"
 
 Response:
-1. Load `kb-compress.skill.md`.
+1. Load `skills/kb/kb-compress.skill.md`.
 2. Execute the compression audit.
 3. Present findings and walk through confirmations per item.
 
@@ -135,7 +135,7 @@ Response:
     >  Based on our session: [brief description]
     >  Update that entry or create a new one?"
 4. If user confirms (with or without corrections): incorporate any
-   corrections, load `kb-write.skill.md`, and proceed to draft.
+   corrections, load `skills/kb/kb-write.skill.md`, and proceed to draft.
 5. If user declines: acknowledge and do nothing.
 
 Do not write any entry without an explicit affirmative response from the user.

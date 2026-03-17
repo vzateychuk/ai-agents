@@ -2,27 +2,26 @@
 description: AI Session Workflow Instructions (AI-Agnostic, AI-Driven Scan)
 ---
 
-## AI Session Workflow Instructions (AI-Agnostic)
+## AI Session Workflow Instructions
 
 ### 1. Session Start
 
 - Locate `repo_map.md` under the project root.
-- If `repo_map.md` exists, **read it before opening any other files**.
-- If `repo_map.md` does not exist:
-  - Create the file.
-  - Ask the user to run the **repo_map.md generation task** to scan the repository
-    and record project structure, modules, flows, and key files.
-- Do NOT read `repo_map.infra.md` at session start unless the current task
-  requires it (see Section 3).
+- If `repo_map.md` exists, **read it before opening any other project (application) files**.
+- Exception: If the task is about the AI toolkit itself (agents/rules/instructions/skills/knowledge), it is acceptable to open those files directly. `repo_map.md` is intended to index the application, not the agent toolchain.
+- If `repo_map.md` does not exist: ask the user to run the **repo_map.md generation task** to scan the repository and record project structure, modules, flows, and key files.
 
 ---
 
 ### 2. File Access Strategy
 
-- Before opening repository files, consult `repo_map.md` to identify
+- Before opening project (application) files, consult `repo_map.md` to identify
   the most relevant areas of the codebase.
 - Open only files relevant to the current task according to `repo_map.md`.
 - Avoid repository-wide scans unless explicitly requested by the user.
+- If you cannot find the relevant files via `repo_map.md` (or a small set of targeted searches),
+  ask the user for permission before doing any repository-wide scan.
+  - Include what you already tried, what you plan to search for, and the intended scan scope.
 
 ---
 
@@ -45,8 +44,7 @@ Read `repo_map.infra.md` **only** when the current task requires it:
 | **Integration work**   | **Yes**                | Needs API_CONSUMED                          |
 
 If `repo_map.infra.md` does not exist and the task requires it:
-- Create the file.
-- Ask the user to run the **repo_map.infra.md generation task**.
+- Ask the user to run the **repo_map.infra.md generation task** to scan repository and create the `repo_map.infra.md`.
 
 ---
 

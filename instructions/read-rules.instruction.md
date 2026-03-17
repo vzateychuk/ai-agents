@@ -18,7 +18,9 @@ alwaysApply: true
 
 2. **Load only common rules** — those with `alwaysApply: true` in frontmatter. Rules without `alwaysApply: true` are not loaded at bootstrap.
 
-3. **Read and apply** these rules as mandatory session rules. Add each rule's `name` to the loaded list (for deduplication when agents are selected later). They apply to every session regardless of agent.
+3. **Read rules** For every `alwaysApply: true` rule file discovered, open it immediately, read its contents, and add the rule’s name and key directives to the active session context.
+
+4. **Follow and apply** Follow every `alwaysApply: true` rules as mandatory session rules. Add each rule's `name` to the loaded list (for deduplication when agents are selected later). They apply to every session regardless of agent.
 
 ---
 

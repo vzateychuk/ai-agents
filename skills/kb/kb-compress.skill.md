@@ -23,7 +23,7 @@ Never delete or modify anything without explicit user confirmation.
 
 ## When to run
 
-- Developer explicitly requests: `kb-expert: compress index`
+- User explicitly requests: `kb-expert: compress index`
 - `index.yaml` entry count exceeds ~500 rows
 - Lookup recall noticeably degrades (too many false positives)
 
@@ -33,7 +33,7 @@ Never delete or modify anything without explicit user confirmation.
 
 ### Step 1 — Count and report
 
-Read `index.yaml`, count entries, and log a short status message (entry count + "Running compression audit...").
+Read `index.yaml`, count entries, and log a short status message (entry count + \"Running compression audit...\").
 
 ### Step 2 — Detect duplicate triggers
 
@@ -43,8 +43,8 @@ two or more entries.
 Near-identical: same phrase with minor variation (punctuation, casing,
 word order). Example:
 ```
-entry A triggers: ["docker build fails", "build fails on arm"]
-entry B triggers: ["docker build failure", "build fails arm64"]
+entry A triggers: [\"docker build fails\", \"build fails on arm\"]
+entry B triggers: [\"docker build failure\", \"build fails arm64\"]
 ```
 → flag as duplicate trigger candidates.
 
@@ -110,7 +110,7 @@ Before applying any changes, present a summary:
 - number of entries with trigger bloat
 - estimated size reduction.
 
-Ask: "Proceed with review? (y/n)". If confirmed, walk through each category one at a time, presenting proposed changes and waiting for per-item confirmation.
+Ask: \"Proceed with review? (y/n)\". If confirmed, walk through each category one at a time, presenting proposed changes and waiting for per-item confirmation.
 
 ### Step 7 — Apply confirmed changes
 
@@ -140,3 +140,4 @@ Print a short summary:
 - If in doubt about an entry's value, keep it.
 - When merging entries, preserve all triggers and tags from both into the merged entry to maintain retrieval coverage.
 - After merging, verify the merged entry's summary remains a single clear sentence — it is the first thing the AI reads during RAG injection.
+

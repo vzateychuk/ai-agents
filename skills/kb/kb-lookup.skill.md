@@ -100,13 +100,13 @@ SUMMARY is used only as a tiebreaker between candidates already found in Steps 2
 
 Run only when the user explicitly asks about causes or consequences.
 
-**"What caused X?" / "почему возникло X?"**
+**\"What caused X?\" / \"почему возникло X?\"**
 1. Identify entry X from previous steps.
 2. Read `related` field from X's frontmatter.
 3. For each ID in `related`: read that entry file and repeat recursively until `related` is empty or absent.
 4. Present the chain: X ← parent ← grandparent ...
 
-**"What did X cause?" / "что породило X?"**
+**\"What did X cause?\" / \"что породило X?\"**
 1. Identify entry X from previous steps.
 2. Grep RELATED column in `index.yaml` for X's ID.
 3. For each matching row: read that entry file and, if requested, recurse to build the full downstream chain.
@@ -118,7 +118,7 @@ Run only when the user explicitly asks about causes or consequences.
 
 If no candidates found after all steps, respond:
 
-> "No entries found in the knowledge base for this topic. Do you want to create one? If yes, describe what was discovered and I will draft the entry for your review."
+> \"No entries found in the knowledge base for this topic. Do you want to create one? If yes, describe what was discovered and I will draft the entry for your review.\"
 
 Do NOT fabricate knowledge or answer from code inference alone. Do NOT silently return an empty result without the above message.
 
@@ -126,7 +126,7 @@ Do NOT fabricate knowledge or answer from code inference alone. Do NOT silently 
 
 ## Output format
 
-Return at most 3 entries, ranked by relevance. If more candidates were found, note how many were omitted (e.g. "3 of 5 matches shown.").
+Return at most 3 entries, ranked by relevance. If more candidates were found, note how many were omitted (e.g. \"3 of 5 matches shown.\").
 
 Entries are returned as context for injection — not as search results to browse. The primary agent will prepend them to its reasoning before answering.
 
@@ -136,3 +136,4 @@ For each entry return:
 3. Full entry content (frontmatter + body)
 
 If the primary agent needs only `summary` to answer a simple factual question, it may skip reading the full body; for complex questions, use the full body.
+

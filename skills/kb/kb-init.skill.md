@@ -1,6 +1,6 @@
 ---
 name: kb-init
-description: Initialize .knowledge/ for a new project. Create minimal structure, index, tags, README, and one bootstrap entry. Use when starting KB in a repository that does not yet have .knowledge/.
+description: Initialize .knowledge/ for a new project. Create minimal structure, index, tags, README, and one bootstrap entry. Use when starting KB in a repository that does not yet have a knowledge base.
 tags: kb, knowledge-base, init, about
 ---
 
@@ -162,3 +162,4 @@ After running all steps, return a summary containing:
 - Any migration warnings for a pre-existing `index.yaml` (if applicable).
 
 No changes are written without explicit user confirmation from `kb-expert`.
+

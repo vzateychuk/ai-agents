@@ -69,7 +69,7 @@ The implementation works with any AI assistant that has file-system access.
 The index is intentionally a single file — splitting it
 sub-indexes provides no benefit since search is by triggers
 and tags. The correct scaling strategy is index compression
-via `kb-compress.skill.md`, which prunes low-signal entries while preserving
+via `skills/kb/kb-compress.skill.md`, which prunes low-signal entries while preserving
 retrieval quality.
 
 ---
@@ -256,7 +256,7 @@ by asking `kb-expert: show index`.
 
 ### Tag Dictionary
 
-Tags are maintained in `.knowledge/tags.md` — a flat list of approved lowercase keywords. The template provides a minimal seed; add project-specific tags when creating entries. Counts, dimensions, and format: see rule `kb-tags`. The detailed tag generation algorithm (how to choose and add tags) is defined in `kb-write.skill.md` and should be treated as the canonical source for tag selection behaviour.
+Tags are maintained in `.knowledge/tags.md` — a flat list of approved lowercase keywords. The template provides a minimal seed; add project-specific tags when creating entries. Counts, dimensions, and format: see rule `kb-tags`. The detailed tag generation algorithm (how to choose and add tags) is defined in `skills/kb/kb-write.skill.md` and should be treated as the canonical source for tag selection behaviour.
 
 ```markdown
 # Tag Dictionary
@@ -529,12 +529,12 @@ The knowledge base is operated through explicit triggers:
 > "kb-expert: что мы знаем про проблему со сбросом пагинации?"
 > "kb-expert: show everything caused by kb-001"
 
-`kb-expert` loads `kb-lookup.skill.md` and executes the search.
+`kb-expert` loads `skills/kb/kb-lookup.skill.md` and executes the search.
 
 **Trigger 2 — direct write request:**
 > "kb-expert: create entry for JIRA-5501, we fixed nginx timeout in prod"
 
-`kb-expert` loads `kb-write.skill.md` and drafts the entry.
+`kb-expert` loads `skills/kb/kb-write.skill.md` and drafts the entry.
 
 **Trigger 3 — task completion signal:**
 
@@ -552,7 +552,7 @@ When the user signals that work on a task is done:
    >  [brief description reconstructed from context]
    >  Shall I create a KB entry for this? I can refine the draft if anything
    >  is incorrect or missing."
-3. If the user confirms — proceeds to draft via `kb-write.skill.md`.
+3. If the user confirms — proceeds to draft via `skills/kb/kb-write.skill.md`.
 4. If the user corrects the description — incorporates corrections and drafts.
 5. If the user declines — acknowledges and does nothing.
 
@@ -570,17 +570,19 @@ No file is created or modified without explicit user confirmation.
 ## Entry Creation Skills
 
 Knowledge base operations are implemented as three universal skill files:
-`kb-write.skill.md` handles both creating and updating entries via an explicit
-operation mode. `kb-lookup.skill.md` handles all search operations.
-`kb-compress.skill.md` handles index audit and compression. One file to load per operation.
+`skills/kb/kb-write.skill.md` handles both creating and updating entries via an explicit
+operation mode. `skills/kb/kb-lookup.skill.md` handles all search operations.
+`skills/kb/kb-compress.skill.md` handles index audit and compression. One file to load per operation.
 
 ### Skill file locations
 
 ```
 ~/.agents/skills/
-├── kb-write.skill.md      <- universal entry creation skill (all categories)
-├── kb-lookup.skill.md     <- lookup algorithm
-└── kb-compress.skill.md   <- index compression and audit
+├── index.md               <- canonical skills discovery entrypoint
+└── kb/
+    ├── kb-write.skill.md      <- universal entry creation skill (all categories)
+    ├── kb-lookup.skill.md     <- lookup algorithm
+    └── kb-compress.skill.md   <- index compression and audit
 ```
 
 Skills are shared across all projects from `~/.agents/skills/`.

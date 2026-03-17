@@ -20,4 +20,4 @@ When writing or updating `.knowledge/` entry files or `index.yaml`:
 
 - **Format:** Tags are lowercase. One tag per concept — do not add synonyms (e.g. both `auth` and `auth0` for the same concept) to avoid fragmenting the dictionary.
 
-- **Algorithm:** The detailed step-by-step tag generation algorithm (how to extract candidates and decide when to add new tags) is defined in `skills/kb-write.skill.md` and should be treated as the canonical source for tag selection behaviour.
+- **Algorithm:** The detailed step-by-step tag generation algorithm (how to extract candidates and decide when to add new tags) is defined in `skills/kb/kb-write.skill.md` and should be treated as the canonical source for tag selection behaviour.

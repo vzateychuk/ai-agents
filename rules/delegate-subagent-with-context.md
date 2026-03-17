@@ -14,11 +14,13 @@ When you are about to call the **Task** tool (or equivalent delegation mechanism
    - Optional project override: `.agents/agents/<name>.agent.md` in the repo root if present.
    - Map subagent_type to filename (e.g. `QA-Tester` → `qa-tester.agent.md` or `QA-Tester.agent.md`).
 
-2. **Read the agent file.** If it lists a "Skills" section or skill names (e.g. test-coverage, tech-writer, generate-tests), resolve and read those skill files:
-   - Windows: `%USERPROFILE%\.agents\skills\`
-   - Unix/WSL: `~/.agents/skills/`
-   - Optional project: `.agents/skills/` in the repo root.
-   - File names: `<skill-name>.skill.md` or folder `<skill-name>/SKILL.md`.
+2. **Read the agent file.** If it lists a "Skills" section or skill names, resolve and read those skill files by canonical path:
+   - First, read the toolkit skills index to discover canonical skill paths:
+     - Prefer `.agents/skills/index.md` if the project has a `.agents` symlink to the toolkit.
+     - Otherwise read `~/.agents/skills/index.md` (Windows: `%USERPROFILE%\.agents\skills\index.md`).
+   - For each required skill name, look it up in that `index.md` and load the appropriate skill from the canonical path listed there.
+   - Do not guess skill paths from naming conventions.
+   - If a skill is not present in the index, note it as missing and proceed with delegation without it.
 
 3. **Build the prompt** passed to the delegation tool by including in the prompt text:
    - A short line: "Apply the following agent and skill instructions."

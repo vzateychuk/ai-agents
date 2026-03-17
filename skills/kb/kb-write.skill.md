@@ -126,6 +126,15 @@ Use this algorithm to propose tags before showing a draft to the user:
   #        module     feature     tech      symptom
   ```
 
+For meta-entries that describe the knowledge base itself (for example, `kb-000-knowledge-base`), apply the same dimensions but interpret them in terms of the KB concept and usage:
+
+- SYMPTOM — questions like "зачем нужна база знаний?" or "как её использовать?"
+- MODULE — the KB component itself (`kb`)
+- TECH — mechanisms like `rag`, `index.yaml`, `tags.md`
+- FEATURE — user-facing operations like `kb-init`, `kb-lookup`, `kb-write`, `kb-compress`
+
+Tags for such entries should make them easy to find when the user asks about the purpose of the knowledge base or how to use `kb-expert`.
+
 ### Step 4 — Select section template
 
 Sections are recommendations, not hard requirements. Use them when information is available; missing sections can be added later via update mode.
@@ -229,3 +238,4 @@ Ask: "Confirm to write, or provide corrections?"
 Only after explicit user confirmation:
 1. Overwrite the entry file in place.
 2. Update the existing row in `.knowledge/index.yaml` in place.
+
