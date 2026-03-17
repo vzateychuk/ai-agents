@@ -1,5 +1,5 @@
 ---
-name: 'NodeJS-TypeScript-Fullstack'
+name: 'nodejs-expert'
 description: Expert Node.js and TypeScript fullstack developer. Use when implementing Express APIs, React SPAs, Vite builds, npm workspaces, or TypeScript/JavaScript projects with backend + frontend.
 model: inherit
 rules: [git-commits-message]
