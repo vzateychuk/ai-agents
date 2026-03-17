@@ -35,6 +35,10 @@ Extract search terms from the input (all languages present):
 - Actions: what triggered the problem
 - Inferred technical terms from context (e.g. "list + resets" → "pagination").
 
+Also detect whether the user is asking for the most recent update, for example:
+- English: "latest", "recent", "last updated", "most recently updated"
+- Russian: "последнее", "свежее", "недавно", "последнее обновление", "когда обновлялось"
+
 If input is a bare ID or partial number (e.g. "1234", "JIRA-1234"):
 → skip to Step 2 ID match directly, do not decompose.
 
@@ -71,6 +75,11 @@ Run only if Step 2 produced 0 candidates or more than 1 candidate.
 
 After step: apply early-exit rule.
 If still 0 candidates → go to Step 6 (fallback). If >1 candidates → continue to Step 4.
+
+If the user asked for the latest/most recently updated entry and candidates include `date`:
+- Prefer candidates that have a `date` field over those that do not.
+- Sort remaining candidates by `date` descending before Step 4.
+If `date` is missing for some candidates, treat their recency as unverified and rank them after dated entries.
 
 ---
 

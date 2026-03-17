@@ -146,7 +146,7 @@ Create a single bootstrap entry that documents the KB itself. If the bootstrap f
      - how to call `kb-expert` for init, lookup, write and compress operations.
 
 4. Index entry:
-   - Append a matching row to `.knowledge/index.yaml`’s `entries` list with the same `id`, `component`, `related`, `triggers`, and a discriminating subset of `tags`.
+   - Append a matching row to `.knowledge/index.yaml`’s `entries` list with the same `id`, `component`, `related`, `triggers`, `date`, and a discriminating subset of `tags`.
 
 If `kb-000-knowledge-base` already exists in `entries`, do not append a duplicate; mention any field discrepancies (id, triggers, tags) in the report if detected. If the corresponding file already exists on disk, do not modify it automatically; include any detected mismatches in the report so the user can decide whether to update it.
 

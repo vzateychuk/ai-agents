@@ -187,6 +187,7 @@ The primary agent then:
   tags:
     - 400
     - 500
+  date: 2026-03-16
 ```
 
 - `id` — tracker ticket ID or `kb-NNN`. Unique key for the entry; file names are derived from this ID as `kb-<sanitised-id>.md` (only `[A-Za-z0-9_-]` kept).
@@ -194,4 +195,5 @@ The primary agent then:
 - `related` — list of IDs of causally or thematically linked entries.
 - `triggers` — 2–6 natural-language symptom phrases (per rule kb-tags). Primary search target.
 - `tags` — 4–8 keywords from `tags.md` only (per rule kb-tags).
+- `date` — last update date for the entry in `YYYY-MM-DD` (mirrors entry frontmatter `date`). New or updated entries should include it; older indexes may omit it until backfilled.
  - `file` — optional path to the entry file (normally `kb-<sanitised-id>.md` in the category directory). If missing, the path is derived from `id`.

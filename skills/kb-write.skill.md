@@ -177,7 +177,9 @@ Ask: "Confirm to write, or provide corrections?"
 
 Only after explicit user confirmation:
 1. Write the entry file to the target directory.
-2. Append the new row to `.knowledge/index.yaml`. The row MUST include a `file` field whose value is the derived path `<category-dir>/kb-<sanitised-id>.md` (for example, `issues/kb-1387.md`), using the same file-naming rules from Step 1b.
+2. Append the new row to `.knowledge/index.yaml`. The row MUST include:
+   - `date` (same value as the entry frontmatter `date`, `YYYY-MM-DD`)
+   - `file` whose value is the derived path `<category-dir>/kb-<sanitised-id>.md` (for example, `issues/kb-1387.md`), using the same file-naming rules from Step 1b.
 
 ---
 
@@ -196,6 +198,7 @@ Increment `version` by 1.
 Update `date` to today.
 
 Sync `triggers`, `tags`, `component`, and `related` in the `index.yaml` entry if any of them changed.
+Always sync `date` in the `index.yaml` row to match the entry frontmatter `date`.
 
 ### Step 3 — Draft and present
 

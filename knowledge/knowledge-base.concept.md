@@ -209,6 +209,7 @@ entries:
       - 401
       - 403
       - 500
+    date: 2026-03-16
 
   - id: ALFA-32867
     component: [user-service]
@@ -222,6 +223,7 @@ entries:
       - back-nav
       - pagination
       - v2api
+    date: 2026-03-01
 
   - id: kb-001
     component: [infrastructure]
@@ -234,6 +236,7 @@ entries:
       - docker
       - arm64
       - multiarch
+    date: 2026-02-10
     file: issues/kb-001.md
 ```
 
@@ -245,6 +248,7 @@ Field rules:
   Include non-English phrases if the team is multilingual. Primary search target.
 - `tags` — 4–8 keywords chosen **exclusively from `tags.md`** (per kb-tags rule).
   Full tag list lives in the entry file; index carries only the most discriminating subset.
+- `date` — last update date for the entry in `YYYY-MM-DD`. Mirrors the entry frontmatter `date`. Used to quickly identify recently updated entries without opening entry files. New or updated entries must include `date`; older indexes may omit it until backfilled.
  - `file` — optional; path to the entry file (by default `kb-<sanitised-id>.md` in the appropriate category directory). If omitted, tools derive the path from `id` using the file-naming rules.
 
 A human-readable markdown table can be generated from `index.yaml` on demand
