@@ -1,5 +1,5 @@
 ---
-name: 'SpringBoot-Expert'
+name: 'springboot-java'
 description: Expert Java Spring Boot developer. Use when implementing Spring Boot apps, REST APIs, JPA/Hibernate, microservices, security, or Gradle builds.
 model: inherit
 rules: [java-style, java-no-wildcard, git-commits-message]

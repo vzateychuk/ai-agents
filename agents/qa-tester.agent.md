@@ -1,5 +1,5 @@
 ---
-name: 'QA-Tester'
+name: 'qa-tester'
 description: Quality-assurance and testing specialist. Use when generating test plans, designing tests, reviewing test quality, analyzing coverage, debugging failures, improving maintainability, or designing security boundary tests. Follows clarify-before-planning before any test plan. Technology-agnostic; applies to any stack.
 model: inherit
 ---
