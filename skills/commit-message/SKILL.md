@@ -1,7 +1,6 @@
 ---
 name: commit-message
 description: Write clear, conventional commit messages. Use when the user asks for a commit message, commit comment, or to summarize changes for a commit. Applies to any project and VCS.
-tags: git, commit, message
 ---
 
 # Commit Message

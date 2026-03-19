@@ -1,7 +1,6 @@
 ---
 name: tech-writer
 description: Technical documentation principles for any doc type. Use when writing, updating, reviewing, or improving technical docs — README, developer guide, API docs, quick start, tutorial, troubleshooting guide, runbook, architecture doc; when documenting a feature, module, or service; when asked to improve clarity, structure, or tone of existing documentation. Brevity, maximum content, informal professional tone. Applies to any stack. Complements docs-no-emoji and human-like-writing rules.
-tags: docs, documentation, writing, readme, guides
 ---
 
 # Technical Documentation

@@ -1,7 +1,6 @@
 ---
 name: code-review
 description: Review pull requests and code changes. Use when the user asks for a code review, PR review, or to review changes. Applies to any stack. Complements code-quality-avoid, generate-tests, and security.
-tags: code-review, pr-review, pull-request, review
 ---
 
 # Code Review

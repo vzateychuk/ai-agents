@@ -1,7 +1,6 @@
 ---
 name: api-design-rest
 description: Design RESTful APIs with correct HTTP semantics, DTOs, pagination, and error handling. Use when building or reviewing REST APIs in any stack (Spring, Node, Go, etc.).
-tags: api, rest, http, endpoints
 ---
 
 # REST API Design

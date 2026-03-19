@@ -156,9 +156,10 @@ Then in your AI session:
 
 ## Delegation to subagents and skills (AI-agnostic)
 
-Subagents start with a **clean context**. The tool does not inject the agent file or skills automatically; only what
-the parent puts in the delegation prompt is sent. Paths are **AI-agnostic**: agents, skills, and instructions live
-under `~/.agents/` (on Windows: `%USERPROFILE%\.agents\`).
+Subagents start with a **clean context** (they do not inherit the parent's working context automatically).
+Skill and agent instructions are resolved via **native activation** from canonical skill files:
+`~/.<ai>/skills/<skill-name>/SKILL.md` (Codex/Cursor/Claude), with a symlink layer pointing at `~/.agents/skills`.
+Paths are **AI-agnostic**: agents, skills, and instructions live under `~/.agents/` (on Windows: `%USERPROFILE%\.agents\`).
 
 **Why there is no project `.cursor/` folder:** You do **not** create a `.cursor/` subfolder in the project. The toolkit
 lives in the user's home directory under `~/.agents/` (`agents/`, `skills/`, `instructions/`, `rules/`, etc.). Create a
@@ -166,10 +167,6 @@ single symbolic link from the project to that directory (project `.agents` -> `~
 bootstrap from `.agents/AGENTS.md` and load instructions and common rules from `~/.agents/instructions/` and
 `~/.agents/rules/`.
 
-The rule **delegate-subagent-with-context** (`alwaysApply: true`) is one of those common rules. Before delegating, the
-parent agent reads the chosen agent file from `~/.agents/agents/` and the referenced skills from `~/.agents/skills/`
-and includes them in the delegation prompt. No project-local copy in `.cursor/rules/` is required.
-
-There is no setting to "auto-inject skills when launching subagent"; this global rule provides that behavior.
+There is no requirement to inject agent+skill file contents via a custom delegation rule.
 Optionally, embed the most critical skill steps in the agent's prompt in `~/.agents/agents/<name>.agent.md` so the
-subagent has minimal guidance even if the rule is not applied.
+subagent has minimal guidance even if the platform's activation heuristics are imperfect.

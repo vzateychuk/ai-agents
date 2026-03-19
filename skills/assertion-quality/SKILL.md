@@ -1,7 +1,6 @@
 ---
 name: assertion-quality
 description: Write robust assertions and avoid brittle or flaky tests. Use when writing or reviewing tests. Applies to any stack.
-tags: assertions, flaky, brittle, test-quality
 ---
 
 # Assertion Quality

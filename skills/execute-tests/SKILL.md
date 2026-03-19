@@ -1,7 +1,6 @@
 ---
 name: execute-tests
 description: Run tests for the current project. Use when the user asks to run tests, execute tests, run the test suite, or debug test failures. Reads build manifest to determine the correct command.
-tags: execute-tests, run-tests, test-runner
 ---
 
 # Execute Tests

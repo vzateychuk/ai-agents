@@ -1,7 +1,6 @@
 ---
 name: db-migrations
 description: Create, apply, and manage database schema migrations. Use when adding a migration, running migrations, rolling back, or reviewing schema changes. Applies to any stack and any migration tool.
-tags: migrations, schema, database
 ---
 
 # Database Migrations

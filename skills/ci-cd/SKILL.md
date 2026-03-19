@@ -1,7 +1,6 @@
 ---
 name: ci-cd
 description: CI/CD pipelines, build, release, and deployment. Use when working on pipelines, Dockerfile, Docker, Helm, Kubernetes, OpenShift, cloud deployment (AWS, GCP, Azure), release and rollback strategies, or when setting up or fixing deployment and automation. Applies to any stack.
-tags: ci, cd, pipeline, docker, kubernetes, helm, openshift, deployment
 ---
 
 # CI/CD and Deployment

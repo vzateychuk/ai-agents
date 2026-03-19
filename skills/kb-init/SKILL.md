@@ -1,7 +1,6 @@
 ---
 name: kb-init
 description: Initialize .knowledge/ for a new project. Create minimal structure, index, tags, README, and one bootstrap entry. Use when starting KB in a repository that does not yet have a knowledge base.
-tags: kb, knowledge-base, init, about
 ---
 
 # kb-init.skill.md
@@ -50,10 +49,6 @@ Create the following under the project root:
 - Directory: `.knowledge/`
 - Subdirectories under `.knowledge/`:
   - `misc/`
-
-Also ensure the project `.gitignore` (if it exists at the project root) ignores `.knowledge/`:
-- If `.gitignore` is present and does not yet contain a rule for `.knowledge/`, append a line to exclude `.knowledge/` from version control.
-- If `.gitignore` is missing, mention in the output that the KB directory is currently not ignored by VCS, but do not create a new `.gitignore` file automatically.
 
 ---
 

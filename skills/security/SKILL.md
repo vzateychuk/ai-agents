@@ -1,7 +1,6 @@
 ---
 name: security
 description: Security review and hardening for applications and APIs. Use when implementing or reviewing authentication, authorization, secrets, input validation, or when the user asks for a security review or threat assessment. Applies to any stack.
-tags: security, auth, secrets, validation, hardening
 ---
 
 # Security

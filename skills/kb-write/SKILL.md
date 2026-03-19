@@ -1,7 +1,6 @@
 ---
 name: kb-write
 description: Create or update .knowledge/ entries and index.yaml rows. Use when the user asks to create or update a KB entry (tasks, issues, config, deployment, behavior, decisions).
-tags: kb, knowledge-base, write, create, add, update
 ---
 
 # kb-write.skill.md

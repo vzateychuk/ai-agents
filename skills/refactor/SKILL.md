@@ -1,7 +1,6 @@
 ---
 name: refactor
 description: Safely refactor existing code without changing behavior. Use when the user asks to refactor, rename, extract, move, restructure, or clean up code. Applies to any stack.
-tags: refactor, rename, extract, restructure, cleanup
 ---
 
 # Refactor

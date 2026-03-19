@@ -1,7 +1,6 @@
 ---
 name: context-persist
 description: Save compressed session context to .CURRENT_CONTEXT or load it. Use when the user asks to persist context (e.g. near context limit), or to load persisted context in a new session. References only; no document content. Applies to any workspace.
-tags: context, memory, persist, compress
 ---
 
 # Context Persist

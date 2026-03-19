@@ -20,15 +20,28 @@ about the codebase unless the answer comes directly from a knowledge base entry.
 
 ## Skills
 
-Load the appropriate skill file before executing any operation.
-Do not re-implement skill logic inline.
+Load the appropriate KB skill before executing any operation involving the knowledge base.
 
+### Required Skill per Operation
 | Operation        | Skill file         |
 |------------------|-------------------|
-| Init / bootstrap | skills/kb/kb-init.skill.md  |
-| Lookup / search  | skills/kb/kb-lookup.skill.md |
-| Create / update  | skills/kb/kb-write.skill.md  |
-| Compress index   | skills/kb/kb-compress.skill.md |
+| Init / bootstrap | `skills/kb-init/SKILL.md` |
+| Lookup / search | `skills/kb-lookup/SKILL.md` |
+| Add, create / update | `skills/kb-write/SKILL.md` |
+| Compress index | `skills/kb-compress/SKILL.md` |
+
+### Mandatory Rules
+- **Do not** re-implement KB logic inline.
+- **Do not** modify anything under **`.knowledge/**` directly.
+- **Do not** use generic file-edit tools (e.g., `ApplyPatch`) for KB writes.
+
+### If the Required Skill Is Not Available
+- Stop and ask for clarification/permission.
+- Do **not** fall back to direct edits.
+
+### Output Contract
+In the final response, always state:
+- which KB skill was used (`kb-init` / `kb-lookup` / `kb-write` / `kb-compress`)
 
 ---
 
@@ -61,7 +74,7 @@ Invocation examples:
   (and close variants: create/new/инициализируй kb, новая база знаний, etc.)
 
 Response:
-- Load `skills/kb/kb-init.skill.md` and execute the initialization algorithm.
+- Apply **kb-init** skill and execute the initialization algorithm.
 - If `.knowledge/` already exists, do not modify it; report the current KB status instead.
 - If `.knowledge/` is missing, create the KB structure, minimal `index.yaml`, `tags.md`, `.knowledge/README.md`, and the bootstrap entry `kb-000-knowledge-base` under `.knowledge/misc/`. If `repo_map.md` exists, optionally seed a small set of module/component tags into `tags.md` according to `kb-init` rules.
 - Always present a summary of planned changes and request explicit confirmation before writing anything.
@@ -75,7 +88,7 @@ Invocation examples:
 - "kb-expert: 1234"
 
 Response:
-1. Load `skills/kb/kb-lookup.skill.md`.
+1. Apply **kb-lookup** skill.
 2. Execute the lookup algorithm.
 3. Return matched entries or the fallback message if nothing found.
 
@@ -90,7 +103,7 @@ Invocation examples:
 Response:
 1. Determine mode (`create` or `update`) from the request.
    If ambiguous and a related entry exists: ask the user.
-2. Load `skills/kb/kb-write.skill.md`.
+2. Apply **kb-write** skill.
 3. Execute the appropriate mode.
 4. Present draft to user. Write only after explicit confirmation.
 
@@ -103,7 +116,7 @@ Invocation examples:
 - "kb-expert: audit the knowledge base"
 
 Response:
-1. Load `skills/kb/kb-compress.skill.md`.
+1. Apply **kb-compress** skill.
 2. Execute the compression audit.
 3. Present findings and walk through confirmations per item.
 
@@ -135,7 +148,7 @@ Response:
     >  Based on our session: [brief description]
     >  Update that entry or create a new one?"
 4. If user confirms (with or without corrections): incorporate any
-   corrections, load `skills/kb/kb-write.skill.md`, and proceed to draft.
+   corrections, apply **kb-write** skill, and proceed to draft.
 5. If user declines: acknowledge and do nothing.
 
 Do not write any entry without an explicit affirmative response from the user.
@@ -147,7 +160,7 @@ Do not write any entry without an explicit affirmative response from the user.
 - **Never write or modify files without explicit user confirmation.**
 - **Never fabricate knowledge.** If nothing is found, say so clearly.
 - **Never answer from code inference.** Knowledge base only.
-- **Never load both skills simultaneously.** One operation per invocation.
+- **Never run more than one KB skill per invocation.** One operation per invocation.
 - **Never modify files outside `.knowledge/`.** index.yaml and entry files only.
 - **Single responsibility.** If asked to do something outside KB operations,
   respond: "I handle knowledge base operations only. Please ask the primary agent."

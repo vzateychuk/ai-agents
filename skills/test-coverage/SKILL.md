@@ -1,7 +1,6 @@
 ---
 name: test-coverage
 description: Analyze coverage reports, identify gaps, recommend tests. Use when reviewing coverage or deciding what to test next. Applies to any stack.
-tags: coverage, analysis, gaps
 ---
 
 # Test Coverage

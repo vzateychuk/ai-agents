@@ -1,7 +1,6 @@
 ---
 name: kb-compress
 description: Audit and compress .knowledge/index.yaml when it grows large (~500+ entries). Use when the user asks to compress the KB index or audit the knowledge base.
-tags: knowledge-base, index, compress, audit
 ---
 
 # kb-compress.skill.md

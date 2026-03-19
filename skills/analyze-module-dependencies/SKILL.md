@@ -1,7 +1,6 @@
 ---
 name: analyze-module-dependencies
 description: Analyze module and package dependencies to identify bounded contexts, cyclic dependencies, and service boundaries. Use when reviewing architecture, refactoring modules, or investigating coupling issues. Applies to any stack.
-tags: dependencies, architecture, cycles, bounded-contexts
 ---
 
 # Analyze Module Dependencies
