@@ -1,30 +1,22 @@
 ---
 name: delegate-subagent-with-context
-description: When delegating to a subagent, load the agent file and its skills from ~/.agents into the delegation prompt so the subagent has full context. Paths are AI-agnostic (~/.agents).
+description: When delegating to a subagent, embed full skill content in the delegation prompt. Agent file and AGENTS.md rules are auto-loaded by the platform; SKILL.md files are not.
 alwaysApply: true
 ---
 
-# Delegation: Include Agent and Skills in Subagent Prompt
+# Delegation: Include Full Skill Content
 
-When you are about to call the **Task** tool (or equivalent delegation mechanism) to delegate work to a specialized subagent (e.g. QA-Tester, SpringBoot-Expert), do the following **before** invoking it:
+When calling the **Task** tool (or equivalent) to delegate to a specialized subagent:
 
-1. **Resolve the agent file** for the chosen subagent:
-   - Windows: `%USERPROFILE%\.agents\agents\<name>.agent.md` or `<name>.md`
-   - Unix/WSL: `~/.agents/agents/<name>.agent.md` or `<name>.md`
-   - Optional project override: `.agents/agents/<name>.agent.md` in the repo root if present.
-   - Map subagent_type to filename (e.g. `QA-Tester` → `qa-tester.agent.md` or `QA-Tester.agent.md`).
+The platform automatically loads the agent file and AGENTS.md rules into the subagent context.
+It does **not** load the full `SKILL.md` content — only skill names and brief descriptions from the
+agent file are visible. Embed the full instructions yourself.
 
-2. **Read the agent file.** If it lists a "Skills" section or skill names, resolve and read those skill files by canonical path:
-   - Resolve each skill name to the canonical location:
-     - Unix/WSL: `~/.agents/skills/<skill-name>/SKILL.md`
-     - Windows: `%USERPROFILE%\.agents\skills\<skill-name>\SKILL.md`
-   - Read each resolved `SKILL.md` file and include its full content in the delegation prompt.
-   - If a skill file does not exist at the canonical path, note it as missing and proceed with delegation without it.
+**Before invoking the delegation tool:**
 
-3. **Build the prompt** passed to the delegation tool by including in the prompt text:
-   - A short line: "Apply the following agent and skill instructions."
-   - The **full content** of the agent file (so the subagent knows its role and boundaries).
-   - The **full content** of each skill file relevant to the task (e.g. for coverage analysis include test-coverage and tech-writer).
-   - Then the user's or your specific task description.
+1. Read the agent file to get the skill names listed in its "Skills" section.
+2. For each skill relevant to the task, read its `SKILL.md` and include the full content in the prompt.
+3. Build the prompt: skill instructions first, then the task description.
 
-The subagent receives: agent definition + skill instructions + task. If the agent or a skill file is missing, proceed with delegation but note in the prompt which instructions were not found.
+Do not duplicate the agent file in the prompt — it is already loaded.
+If a skill file is missing, proceed but note which instructions were not found.

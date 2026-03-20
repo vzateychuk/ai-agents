@@ -74,11 +74,11 @@ Scripts are **idempotent**: symlinks are overwritten (`-Force` / `ln -sfn`); Cod
 
 ## Delegation and paths (AI-agnostic)
 
-Subagents start without the parent's full context. The `delegate-subagent-with-context` rule expects you to embed the
-agent file and linked skills from `~/.agents` into the delegation prompt when using your platform's Task/delegation
-mechanism.
+Subagents start without the parent's full context. The platform auto-loads the agent file and AGENTS.md rules; the
+`delegate-subagent-with-context` rule expects you to embed full `SKILL.md` content in the delegation prompt, since
+skills are not passed automatically.
 
 Canonical storage is `~/.agents/` (`agents/`, `skills/`, `rules/`, `prompts/`). After `scripts/` setup, **Cursor** /
-**Claude** / **Codex** / **Copilot** consume the same content via symlinks — no project-local `.cursor/` copy needed.
+**Claude** / **Codex** / **Copilot** consume the same content via symlinks — no project-local (like `.cursor/`) copy needed.
 
 Optional: duplicate critical skill steps inside `~/.agents/agents/<name>.agent.md` if a tool's activation is unreliable.
