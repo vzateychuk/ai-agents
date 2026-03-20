@@ -5,19 +5,39 @@ This file is read at the start of every session — optimize for token efficienc
 
 ---
 
+# Recommended Model
+
+Use the most capable available model (e.g., Opus) for initial generation.
+Use Sonnet for subsequent incremental updates per the Update Policy section.
+
+**Minimum context window:** 128K tokens. The 16 scan steps with evidence-based
+verification accumulate significant file content before the final output is written.
+
+| Project type | Context needed |
+|---|---|
+| Simple (library, CLI) | 64K |
+| Medium (monolith, SPA) | 128K |
+| Complex (microservices) | 200K |
+
+---
+
 # Constraints
 
 - **Adaptive sizing:**
   - Simple projects (library, CLI, single service): 80-140 lines
-  - Medium projects (monolith, SPA, backend service): 120-200 lines
-  - Complex projects (microservices, enterprise): 160-300 lines
-- **Token budget:** ~2000-3300 tokens (hard limit: 4500)
+  - Medium projects (monolith, SPA, backend service): 140-260 lines
+  - Complex projects (microservices, enterprise): 200-400 lines
+- **Token budget:** ~2000-4000 tokens (hard limit: 5500)
 - **Format:** Tables over prose. Descriptions ≤10 words.
 - **File granularity:** Do NOT list individual files except in KEY_FILES and DEPENDENCIES.
-- **Tree depth:** Max 2 levels.
+- **Tree depth:** Max 2 levels (exception: expand one extra level when source root
+  is buried deeper than 2 levels — see Step 8).
 - **Empty sections:** Write `(skip - not applicable)` for irrelevant sections.
 - **Evidence-based:** Every value must be sourced from actual file reads.
   No inference, no guessing, no fabrication.
+- **Verify before skip:** Before writing ANY `(skip - ...)` marker, you MUST
+  have attempted to read/glob for the relevant files. State which files you
+  checked. A skip without evidence is a fabrication.
 - **Security:** ENV_CONFIG — record key names and purpose only. NEVER actual values,
   secrets, connection strings, or tokens. Skip CONFIDENTIAL/INTERNAL files entirely.
 
@@ -27,11 +47,12 @@ This file is read at the start of every session — optimize for token efficienc
 
 When approaching token limit (least critical first):
 1. CONVENTIONS (keep top 5)
-2. FLOWS (keep top 3 flows, max 4 steps each)
-3. FEATURE_MAP (keep top 6)
-4. DATA_ENTITIES (keep top 10)
-5. DEPENDENCIES (keep top 8)
-6. ENV_CONFIG (apply adaptive limits below)
+2. FLOWS (keep top 3 flows, max 6 steps each)
+3. FEATURE_MAP (keep top 8)
+4. API_CONSUMED (keep top 8 by priority order)
+5. DATA_ENTITIES (keep top 10)
+6. DEPENDENCIES (keep top 8)
+7. ENV_CONFIG (apply adaptive limits below)
 
 **Never truncate:** PROJECT, COMMANDS, RUNTIME, ENTRYPOINTS, MODULES, KEY_FILES.
 
@@ -90,19 +111,26 @@ When approaching token limit (least critical first):
 
 ## 4. Detect Runtime
 
-**Read:** Runtime descriptors:
-- `Dockerfile` (FROM, runtime versions)
+**Read:** Check for existence of ALL runtime descriptors below before proceeding:
+- `Dockerfile` (FROM, runtime versions, base images)
+- `docker-compose.yml` / `docker-compose.yaml` (service images, versions)
 - `.nvmrc`, `.node-version`
 - `.python-version`, `runtime.txt`
 - `.tool-versions` (asdf)
 - `.ruby-version`
 - `rust-toolchain.toml`
+- Web server configs at project root (`nginx.conf`, `httpd.conf`, `Caddyfile`)
+
+**Mandatory check:** You MUST attempt to read `Dockerfile` and at least one
+web server config file. Only write `(skip - no runtime descriptor)` after
+confirming NONE of the above files exist. If any file exists, extract
+runtime versions from it.
 
 **Record:** Hard runtime dependencies with exact versions.
+Include: base images (node, python, nginx, alpine), database engines,
+web servers, message brokers — anything the app needs at runtime.
 
-**Skip:** Build-only tools (npm, gradle wrapper).
-
-**Write:** `(skip - no runtime descriptor)` if none exist.
+**Skip:** Build-only tools (npm, gradle wrapper, webpack).
 
 ---
 
@@ -114,7 +142,8 @@ When approaching token limit (least critical first):
 - Python: `os.environ['NAME']`, `os.getenv('NAME')`
 - Container: `Dockerfile` ENV/ARG directives
 - CI/CD: environment blocks in `.github/workflows/`, `.gitlab-ci.yml`
-- Config files: key-value entries in JSON/YAML/TOML/INI
+- Config files: key-value entries in JSON/YAML/TOML/INI/`.properties`
+  (and similar key=value flat-file formats)
 
 **Priority order (list first):**
 1. Secrets/credentials (DATABASE_PASSWORD, API_KEY, JWT_SECRET)
@@ -141,15 +170,30 @@ When approaching token limit (least critical first):
 - `cli.*`, `Program.*`, `bootstrap.*`
 - `handler.*` (serverless)
 - `__main__.py`, `run.py`
+- Deployment descriptors and their registered lifecycle classes
+  (`web.xml`, `WEB-INF/`, `wsgi.py`, `asgi.py`, `*.wsgi`, `web.config`,
+  `applicationHost.config`)
+- `app.module.*`, `app.component.*`, `App.vue`, `App.tsx` (SPA root)
 
 **Skip:** Utility files, config-only, test runners.
 
-**Categorize:** 
+**Categorize:**
 - server (HTTP/WebSocket)
 - cli (command-line interface)
 - worker (background job processor)
 - function (serverless handler)
 - script (one-off execution)
+- app (SPA/framework bootstrap module, root component, app shell)
+- webapp (application bootstrapped by an external container or host:
+  servlet container, WSGI/ASGI host, IIS app pool, rack server, PHP-FPM)
+
+**SPA qualifier rule:** When a SPA project has multiple entrypoint files, using
+bare `app` for every row makes them indistinguishable. Append a qualifier to
+differentiate: `app:bootstrap` (framework init / mount), `app:root-module`
+(root dependency-injection or module config), `app:root-component` (root UI
+component / shell). Omit qualifiers that do not apply to the framework (e.g.,
+most non-Angular SPAs have no root module — use only `app:bootstrap` and
+`app:root-component`).
 
 ---
 
@@ -159,6 +203,20 @@ When approaching token limit (least critical first):
 - For deep package hierarchies (Java, Kotlin, Python src layout, Go):
   Inspect subdirectories at the first meaningful namespace level.
 - For flat structures: List top-level dirs representing architecture units.
+
+**Completeness rule:** List every discovered directory as a separate row.
+Do NOT merge, group, or omit packages to save space — MODULES is never truncated.
+
+**Adapter split rule:** For any infrastructure module that contains named
+implementation sub-directories (e.g., db/mongo/ and db/file/, cache/redis/
+and cache/memory/, storage/s3/ and storage/local/), list EACH sub-directory
+as its own row — do NOT collapse them into the parent row. The parent row
+(e.g., db/) may be omitted ONLY when it is a pure namespace directory with
+no distinct meaning beyond routing to its children. Do NOT omit the parent
+row for directories that represent a major architectural subsystem
+(e.g., proxy/, service/, db/, api/, domain/) — these serve as navigation
+anchors even when all child rows are listed. This applies regardless of the
+depth limit used for STRUCTURE.
 
 **Always include:**
 - Plugin/extension directories
@@ -177,7 +235,22 @@ When approaching token limit (least critical first):
 
 **Format:** Compact ASCII tree, directories only, depth=2.
 
-**Example:**
+**Exception:** When source files are nested deeper than 2 levels before reaching
+meaningful package directories, expand that branch one extra level to expose
+the base namespace path. Keep all other branches at depth=2.
+
+**Wide-project variant:** When the project has 10 or more top-level
+directories, use a single-line inline format to stay within token budget:
+
+  `├── module-name/   ├── src/  └── WebContent/`
+  `├── another/       └── src/`
+
+Each directory occupies one line with children listed inline after padding.
+Inline annotations in parentheses are allowed at end of line:
+`(deployment config profiles per env)`.
+Use when inline rendering is shorter than the equivalent nested block.
+
+**Example (standard):**
 ```
 ├── src/
 │   ├── controllers/
@@ -223,11 +296,25 @@ When approaching token limit (least critical first):
 
 **If applicable:**
 - List 1-3 primary flows only (e.g., "HTTP request flow", "Message processing")
-- Max 4 steps per flow
+- Max 6 steps per flow
+- For request-response flows, MUST include the return path
+  (e.g., service → component with response data)
+- Label the flow name in a header row above the steps
 - Read at least one middleware and one handler file to confirm actual chain
-- Skip exception handlers and logging interceptors
+- Skip: pure exception formatters, response serializers, output encoders
+- Include: middleware that enriches request context (correlation/trace IDs,
+  auth principal population, diagnostic-context/structured-logging enrichment)
 
-**Format:** FROM → TO (purpose)
+**Format:** FROM → TO (purpose). NOTES column: the source file path where this
+step is implemented (e.g., the middleware file, chain executor, handler entry
+point). This enables direct file-jump navigation. Omit only for external
+clients and third-party systems that have no source file in this repo.
+
+**Naming rule:** In FROM and TO columns, use actual source-code identifiers
+(class names, function names, middleware names) as they appear in the codebase,
+not generic descriptions like "Filter chain" or "Service layer". Generic labels
+prevent direct file-jump navigation. If a step spans multiple source files,
+name the entry-point identifier.
 
 ---
 
@@ -239,11 +326,50 @@ When approaching token limit (least critical first):
 
 **Read:**
 - Each controller/router/handler file
-- Server base-path config (e.g., `server.contextPath`, `app.use('/api/v1')`)
+- Primary config file for a global path prefix **before constructing any route**.
+  Common locations by stack:
+  - JVM (properties/YAML): keys like `context-path`, `base-path`, `servlet.context-path`
+  - Node (Express/Fastify/Koa): top-level `app.use('/prefix', router)` in entrypoint
+  - Python (Django/FastAPI/Flask): `SCRIPT_NAME`, `root_path`, root `include()`/`mount()`
+  - Go (Chi/Gin/Echo): `r.Route('/prefix', ...)` or `g.Group('/prefix')`
+  - .NET: `UsePathBase(...)` or `RoutePrefix` in startup
+  If a global prefix exists, prepend it to every route group PATH_PREFIX.
+  A missing prefix produces wrong paths — verify before writing the table.
 
-**Group by:** Route prefix or resource domain.
+**Group by:** Route prefix or resource domain. ROUTE_GROUP values must use the
+actual handler identifier from source (controller class, router module, handler
+function) — not an invented label. This enables direct source lookup. If multiple
+handlers share a route prefix, list each as a separate row — do NOT merge
+distinct handlers into one row.
 
 **Example:** `/api/v1/users`, `/api/v1/orders`, `/graphql`
+
+---
+
+## 11a. Detect Consumed APIs / External Integrations
+
+**Skip if:** No outbound calls to external services or third-party APIs.
+
+**Apply to:** Services that call external HTTP endpoints, use vendor SDKs,
+or publish/consume messages from external brokers.
+
+**Scan for evidence:**
+- HTTP client instantiation in service/infra files
+- Vendor SDK client construction (cloud storage, auth providers, email, etc.)
+- Config keys in the primary config file ending in `baseUrl`, `endpoint`,
+  `host`, `brokers`, or holding a URL pattern
+- Named service references in dependency injection config
+
+**Columns:** SERVICE | BASE_URL_CONFIG_KEY | OPERATIONS (≤6 words) | MODULE
+
+**Prioritize:** auth providers > data stores > messaging > notifications > analytics.
+
+**Completeness over truncation:** List ALL discovered external integrations
+up to 10 entries. Do not omit a service because it falls into a lower-priority
+category. A missing integration means the AI cannot trace that outbound call
+path. Only apply priority-based truncation when more than 10 integrations exist.
+
+**Write:** `(skip - not applicable)` if no outbound integrations found.
 
 ---
 
@@ -261,28 +387,58 @@ When approaching token limit (least critical first):
 - Routing config for each feature
 - Entry files in each feature directory
 
+**Completeness rule:** Enumerate ALL route definitions from the primary
+routing config file. Every routed path MUST appear in FEATURE_MAP.
+Cross-reference: after building the table, re-read the routing config
+and verify no routes were omitted. Missing a route means an agent cannot
+find that feature.
+
 **Columns:** FEATURE | ROUTE | HANDLER | SERVICE | MODEL
 
 **Use `-` for N/A columns.**
 
 ---
 
-## 13. Detect Core Data Entities
+## 13. Detect Core Domain Abstractions
 
 **Skip if:**
 - No persistence layer
-- Stateless service
-- Frontend-only
-- CLI tool
+- No model, entity, interface, or type-definition
+- Pure CLI tool with no data structures
+- Stateless utility library
 
-**Apply only to:** Projects with ORM/schema files
-(models/, entities/, schemas/, domain/).
+**Apply to:** Any project with dedicated model/entity/type directories
+(models/, entities/, schemas/, domain/, _models/, types/, interfaces/)
+AND directories that primarily export domain types even when not named as
+model directories — e.g., actions/, action/, queries/, dto/, commands/,
+events/, payloads/, records/.
 
-**Traverse:** Full model directory.
+**Note:** Frontend projects often define TypeScript interfaces, data transfer
+types, and view models. Include these — they are critical navigation targets.
+
+**Service-contract rule:** When the project has no persistence layer (no ORM
+entities, no migration files, no schema definitions) AND has a dedicated
+module of service contract interfaces (e.g., `services/`, `contracts/`,
+`ports/`, `abstractions/`), list those interfaces as the primary entries in
+DATA_ENTITIES. They are the domain's navigational surface even without being
+data structures. Use PURPOSE column to describe operation scope, not data shape.
+
+**Traverse:** All directories matched by the expanded "Apply to" scope above.
+For each directory, read the index or entry file to enumerate exported type
+names. Do not limit the scan to directories whose names match "model" patterns.
 
 **List:** Entity names exactly as they appear in source.
 
-**Max:** 12 entities (prioritize core domain models over DTOs/view models).
+**Persistence-first rule:** When the project has a persistence layer whose
+entity/model identifiers differ from the API-facing DTOs, list persistence-layer
+entities first. Include both layers when names diverge — an AI modifying the
+data layer needs the actual persistence identifiers, not just the API-level
+type names.
+
+**Max:** 16 entities (prioritize core domain models over DTOs/view models).
+Relabel ENTITY column to CONTRACT when listing service interface contracts
+from a no-persistence project. Write `(skip - not applicable)` if no domain
+model or service contracts.
 
 ---
 
@@ -307,7 +463,7 @@ When approaching token limit (least critical first):
 
 ## 15. Identify Key Files
 
-**Max:** 12 critical files.
+**Max:** 15 critical files.
 
 **Must include:**
 1. Dependency manifest (package.json, pom.xml, etc.)
@@ -316,12 +472,15 @@ When approaching token limit (least critical first):
 
 **Include if exists:**
 4. Pipeline orchestrator (middleware.ts, pipeline.py)
-5. Routing config (routes.*, urls.py, api.yaml)
+5. Routing config (routes.*, urls.py, api.yaml, *-routing.module.*)
 6. OpenAPI/GraphQL schema spec
 7. Database schema/migrations entry
-8. Docker/containerization config
-9. CI/CD pipeline definition
-10. Authentication/authorization config
+8. Docker/containerization config (Dockerfile, docker-compose.yml)
+9. Web server config (nginx.conf, httpd.conf, Caddyfile)
+10. CI/CD pipeline definition
+11. Authentication/authorization config (guards, middleware, passport config)
+12. Test runner config (karma.conf.*, jest.config.*, vitest.config.*, pytest.ini)
+13. E2E test config (playwright.config.*, cypress.config.*, protractor.conf.*)
 
 **Add column:** RELATED_MODULES (which modules use this file).
 
@@ -430,10 +589,12 @@ Write `(skip - fully static config)` if none.)*
 
 ## ENTRYPOINTS
 
-| TYPE   | PATH          |
-|--------|---------------|
-| server | src/server.ts |
-| cli    | src/cli.ts    |
+| TYPE           | PATH          |
+|----------------|---------------|
+| server         | src/server.ts |
+| cli            | src/cli.ts    |
+| app:bootstrap  | src/main.ts   |
+| app:root-component | src/App.tsx |
 
 ---
 
@@ -469,14 +630,14 @@ Write `(skip - fully static config)` if none.)*
 
 ## FLOWS
 
-| STEP | FROM              | TO                 | PURPOSE                  | NOTES |
-|------|-------------------|--------------------|--------------------------|-------|
-| 1    | client            | auth middleware    | Verify JWT token         |       |
-| 2    | auth middleware   | rate limiter       | Check request quota      |       |
-| 3    | rate limiter      | route controller   | Route to handler         |       |
-| 4    | route controller  | service layer      | Execute business logic   |       |
+| STEP | FROM              | TO                 | PURPOSE                  | NOTES                         |
+|------|-------------------|--------------------|--------------------------|-------------------------------|
+| 1    | client            | auth middleware    | Verify JWT token         |                               |
+| 2    | auth middleware   | rate limiter       | Check request quota      | <path/to/auth-middleware>     |
+| 3    | rate limiter      | route controller   | Route to handler         | <path/to/rate-limiter>        |
+| 4    | route controller  | service layer      | Execute business logic   | <path/to/router>              |
 
-*(Max 3 flows, 4 steps each. Write `(skip - not applicable)` if no pipeline.)*
+*(Max 3 flows, 6 steps each. Write `(skip - not applicable)` if no pipeline.)*
 
 ---
 
@@ -489,6 +650,17 @@ Write `(skip - fully static config)` if none.)*
 | orders      | /api/v1/orders| Order processing       |
 
 *(Write `(skip - not applicable)` if no service API.)*
+
+---
+
+## API_CONSUMED *(services with outbound integrations only)*
+
+| SERVICE | BASE_URL_CONFIG_KEY | OPERATIONS | MODULE |
+|---------|---------------------|------------|--------|
+| Stripe  | stripe.baseUrl      | charge, refund, webhook | billing |
+| SendGrid| sendgrid.host       | send transactional email | notifications |
+
+*(Max 10. Prioritize: auth > data stores > messaging > notifications. Write `(skip - not applicable)` if none.)*
 
 ---
 
@@ -512,7 +684,7 @@ Write `(skip - fully static config)` if none.)*
 | Product   | Product catalog items            |
 | Invoice   | Billing and payment records      |
 
-*(Max 12. Write `(skip - not applicable)` if no domain model.)*
+*(Max 16. Write `(skip - not applicable)` if no domain model.)*
 
 ---
 
@@ -526,7 +698,7 @@ Write `(skip - fully static config)` if none.)*
 | prisma/schema.prisma  | Database schema                | database, models     |
 | src/routes/index.ts   | API routing config             | api-controllers      |
 
-*(Max 12. Must include: entrypoint, deps, config, schema if exists.)*
+*(Max 15. Must include: entrypoint, deps, config, schema if exists.)*
 
 ---
 
@@ -567,7 +739,7 @@ Write `(skip - fully static config)` if none.)*
    ```
 
 **Validation after update:**
-- File remains within token budget (~2000-3000 tokens)
+- File remains within token budget (~2000-4000 tokens)
 - If exceeded, apply truncation priority before committing
 - No duplicate rows
 - Table formatting intact
@@ -578,6 +750,7 @@ Write `(skip - fully static config)` if none.)*
 |--------------------------------|-------------------|
 | New module or directory        | MODULES           |
 | New endpoint group             | API_SURFACE       |
+| External integration added/removed | API_CONSUMED  |
 | New pipeline step or flow      | FLOWS             |
 | New domain entity              | DATA_ENTITIES     |
 | New feature directory          | FEATURE_MAP       |
@@ -601,7 +774,8 @@ Before generating repo_map.md:
 - [ ] Categorize major modules
 - [ ] Detect architecture type (evidence-based)
 - [ ] Scan for env variables (if applicable)
-- [ ] Read API routes (if service)
+- [ ] Read API routes (if service) — verify global path prefix first
+- [ ] Detect outbound integrations (if service)
 - [ ] Check for pipeline/flow (if applicable)
 - [ ] List core entities (if data layer exists)
 - [ ] Extract top dependencies
@@ -610,8 +784,26 @@ Before generating repo_map.md:
 
 After generation:
 
-- [ ] Verify token budget (~2000-3000)
+- [ ] Verify token budget (~2000-4000)
 - [ ] All sections have real data (no placeholders)
 - [ ] Tables formatted correctly
 - [ ] No duplicate entries
 - [ ] All `(skip - not applicable)` sections omitted
+- [ ] API_SURFACE paths include global prefix (no missing context root)
+- [ ] MODULES has one row per discovered directory (no silent merges)
+
+---
+
+# Post-Generation Validation
+
+After writing all sections, cross-reference for consistency:
+
+1. **RUNTIME <> KEY_FILES:** Every file listed in RUNTIME (Dockerfile, nginx.conf, etc.)
+   must also appear in KEY_FILES. If missing, add it.
+2. **FEATURE_MAP <> routing config:** Re-read the routing config file. Every defined
+   route must have a FEATURE_MAP row. Log any gaps and fix them.
+3. **ENTRYPOINTS <> KEY_FILES:** Every entrypoint path must appear in KEY_FILES.
+4. **MODULES <> FEATURE_MAP:** Every feature in FEATURE_MAP should map to a module
+   in MODULES. Flag orphans.
+5. **KEY_FILES existence:** Every path listed in KEY_FILES must be a real file
+   you have read. Do not list files you haven't verified.
