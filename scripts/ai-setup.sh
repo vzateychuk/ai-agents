@@ -26,6 +26,7 @@ mkdir -p "$HOME/.cursor"
 link "$AGENTS_TARGET/rules"     "$HOME/.cursor/rules"
 link "$AGENTS_TARGET/skills"    "$HOME/.cursor/skills"
 link "$AGENTS_TARGET/agents"    "$HOME/.cursor/agents"
+link "$AGENTS_TARGET/prompts"   "$HOME/.cursor/commands"
 link "$AGENTS_TARGET/AGENTS.md" "$HOME/.cursor/AGENTS.md"
 
 # ── Claude Code ───────────────────────────────────────────────────────────────

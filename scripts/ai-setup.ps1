@@ -15,6 +15,7 @@ if (-not (Test-Path "$env:USERPROFILE\.cursor") ) {
 New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.cursor\rules"  -Target "$env:USERPROFILE\.agents\rules"  -Force
 New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.cursor\skills" -Target "$env:USERPROFILE\.agents\skills"  -Force
 New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.cursor\agents" -Target "$env:USERPROFILE\.agents\agents"  -Force
+New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.cursor\commands" -Target "$env:USERPROFILE\.agents\prompts"  -Force
 New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.cursor\AGENTS.md" -Target "$env:USERPROFILE\.agents\AGENTS.md" -Force
 
 # Claude 
