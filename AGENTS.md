@@ -4,4 +4,5 @@
 @./rules/delegate-subagent-with-context.md
 @./rules/e2e-testing.md
 @./rules/no-guessing.md
+@./rules/session-init.md
 # [/managed]
