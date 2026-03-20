@@ -14,7 +14,7 @@ tree where your tool reads it.
 | `agents/` | Specialized agent profiles (`.agent.md`) |
 | `rules/` | Behavior rules; `alwaysApply: true` rules load at session start automatically |
 | `skills/` | Portable skills (`SKILL.md` per skill), shared across tools |
-| `prompts/` | Generation prompts; `init.md` is the canonical `/init` entry point |
+| `prompts/` | Generation prompts; `init.prompt.md` is the canonical `/init` entry point |
 | `knowledge/` | Knowledge-base templates and concept docs (see `knowledge/knowledge-base.concept.md`) |
 | `scripts/` | One-time machine setup: symlink wiring for Cursor, Claude Code, Codex CLI, GitHub Copilot |
 
@@ -59,7 +59,7 @@ Scripts are **idempotent**: symlinks are overwritten (`-Force` / `ln -sfn`); Cod
 
 | File | Role |
 |------|------|
-| `init.md` | Generates `repo_map.md` — project nav index with commands, runtime, env, conventions. In Claude Code: `/init` |
+| `init.prompt.md` | Generates `repo_map.md` — project nav index with commands, runtime, env, conventions. In Claude Code: `/init`; in Copilot: Prompt menu or `/init` |
 
 ---
 
@@ -67,7 +67,7 @@ Scripts are **idempotent**: symlinks are overwritten (`-Force` / `ln -sfn`); Cod
 
 1. Ensure machine wiring is done (`scripts/`).
 2. Open the project in your AI tool. The `session-init` rule fires automatically.
-3. If `repo_map.md` does not exist yet, run `prompts/init.md` (or `/init` in Claude Code).
+3. If `repo_map.md` does not exist yet, run `prompts/init.prompt.md` (or `/init` in Claude Code, or Prompt menu in Copilot).
 4. Use `repo_map.md` for all navigation; the agent updates it incrementally as you make changes.
 
 ---
