@@ -37,15 +37,9 @@ When approaching token limit (least critical first):
 
 ---
 
-# Ignore Rules
+# Ignore
 
-Apply `scan-ignore` patterns:
-- Build artifacts: `target/`, `dist/`, `build/`, `.next/`, `out/`
-- Dependencies: `node_modules/`, `vendor/`, `.venv/`, `venv/`
-- IDE config: `.idea/`, `.vscode/`, `.cursor/`
-- Agent files: `.agents/`, `.rules/`, `*.agent.md`, `*.skill.md`
-- Data-only: `uploads/`, `downloads/`, `tmp/`, `cache/`
-- Respect `.gitignore` patterns
+**Apply rule `scan-ignore`.** See `rules/scan-ignore.md`. Skip paths listed there; also respect `.gitignore`.
 
 ---
 

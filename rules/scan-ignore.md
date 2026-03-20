@@ -20,13 +20,13 @@ Skip directories that contain only generated, compiled, downloaded, cached, or I
 Do **not** scan or include in project/KB structure:
 
 - Directories used only by AI assistants or IDE agents (e.g. agent rules, instructions, skills, prompts).
-- Agent-specific markdown: `AGENTS.md`, `CLAUDE.md`, `SKILLS.md`, `RULE.md`, `*.instruction.md`, `CONTEXT_MEMORY`, `.CURRENT_CONTEXT` and the `rules/` directory when it holds session/agent rules rather than project lint/format rules.
+- Agent-specific markdown: `AGENTS.md`, `CLAUDE.md`, `SKILLS.md`, `RULE.md`, `*.instruction.md`, `*.agent.md`, `*.skill.md`, `CONTEXT_MEMORY`, `.CURRENT_CONTEXT` and the `rules/` directory when it holds session/agent rules rather than project lint/format rules.
 
 Treat these as **not part of the application**. Do not create KB entries or index rows that present them as project conventions or structure.
 
 ## Data-only directories
 
-Skip folders that contain only datasets or runtime data (e.g. `.data`, `data/`) unless they are clearly application config or source (e.g. seed data, fixtures referenced by the build or code).
+Skip folders that contain only datasets or runtime data (e.g. `.data`, `data/`, `uploads/`, `downloads/`, `cache/`, `tmp/`) unless they are clearly application config or source (e.g. seed data, fixtures referenced by the build or code).
 
 ## Project .gitignore
 
