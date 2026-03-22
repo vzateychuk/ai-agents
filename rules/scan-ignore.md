@@ -1,12 +1,12 @@
 ---
 name: scan-ignore
-description: Paths and directories to skip when scanning or indexing project structure (repo_map, KB conventions, navigation). Do not treat agent/IDE config as project content.
+description: Paths and directories to skip when scanning or indexing project structure (repo_map, knowledge base (KB) conventions, navigation). Do not treat agent/IDE config as project content.
 alwaysApply: false
 ---
 
 # Scan Ignore Rule
 
-When building a project structure index (e.g. repo_map.md), a knowledge base index, or any "conventions" / navigation view of the repository, **exclude** the following. They are out-of-scope for application structure.
+When building a project structure index (e.g. repo_map.md), a knowledge base (KB) index, or any "conventions" / navigation view of the repository, **exclude** the following. They are out-of-scope for application structure.
 
 ## Directories to skip
 

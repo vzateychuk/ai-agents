@@ -1,7 +1,6 @@
 ---
 name: e2e-testing
 description: Do not run E2E tests automatically unless the user explicitly requests it
-alwaysApply: true
 ---
 
 # E2E Testing

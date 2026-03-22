@@ -8,7 +8,7 @@ description: Create, apply, and manage database schema migrations. Use when addi
 ## Naming Convention
 
 - Use a sortable version prefix (timestamp or sequential number) so migrations run in a deterministic order
-- Follow the prefix with a short, descriptive suffix that states what changed: `20260311_001_add_user_email_field`
+- Follow the prefix with a short, descriptive suffix that states what changed: `v20260311_001_add_user_email_field`
 - Keep descriptions specific to what changed, not why
 - Follow the convention already established in the project; do not introduce a second style
 

@@ -1,6 +1,7 @@
 # Task: Generate repo_map.md
 
 Scan the current project and produce a compact AI navigation index in `repo_map.md`.
+This instruction is run on every project opened first time to build navigation.
 This file is read at the start of every session — optimize for token efficiency.
 
 ---
