@@ -2,5 +2,5 @@
 @./rules/clarify-before-planning.md
 @./rules/delegate-subagent-with-context.md
 @./rules/no-guessing.md
-@./rules/session-init.md
+@./rules/repo-map-navigation.md
 # [/managed]
