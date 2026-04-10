@@ -1,6 +1,8 @@
 ---
 name: commit-message
-description: Write clear, conventional commit messages. Use when the user asks for a commit message, commit comment, or to summarize changes for a commit. Applies to any project and VCS.
+description: Write clear, conventional commit message  from diff. Use when the user asks for a commit message, commit comment, or to summarize changes for a commit. Applies to any project and VCS.
+license: MIT
+allowed-tools: Bash
 ---
 
 # Commit Message
@@ -21,21 +23,46 @@ Apply **git-commits-message** rule: no AI mentions, imperative mood, summary 50 
 - **Brief** — keep the message concise; avoid long explanatory text unless necessary.
 - **Business- and task-oriented** — when possible, describe changes from the business goal or task perspective rather than purely technical detail. Prefer "Add order cancellation for customers" over "Add cancelOrder() to OrderService"; prefer "Fix checkout total when discount applied" over "Fix BigDecimal rounding in calculateTotal". If the change is purely technical (refactor, dependency upgrade), technical wording is acceptable.
 
-## Output Format
+## 3. Generate Commit Message
+
+Analyze the diff to determine:
+
+- **Type**: What kind of change is this?
+- **Scope**: What area/module is affected?
+- **Description**: One-line summary of what changed (present tense, imperative mood, <72 chars)
+
+## Conventional Commit Format
 
 ```
-<Summary in imperative mood (50 chars or less)>
+(<type>) [commit-message]
 
-- Bullet point 1 (what and why)
-- Bullet point 2
-- Bullet point 3
+[optional body: Bullet points (what and why)]
+
+[optional footer(s)]
 ```
+
+## Commit Types
+
+| Type       | Purpose                        |
+| ---------- | ------------------------------ |
+| `feat`     | New feature                    |
+| `fix`      | Bug fix                        |
+| `docs`     | Documentation only             |
+| `style`    | Formatting/style (no logic)    |
+| `refactor` | Code refactor (no feature/fix) |
+| `perf`     | Performance improvement        |
+| `test`     | Add/update tests               |
+| `build`    | Build system/dependencies      |
+| `ci`       | CI/config changes              |
+| `chore`    | Maintenance/misc               |
+| `revert`   | Revert commit                  |
+
 
 ## Examples
 
 **Good (business-oriented):**
 ```
-Add order cancellation for customers
+(feat) Add order cancellation for customers
 
 - Add cancel endpoint with validation of order state
 - Update order status flow to support cancelled
@@ -44,7 +71,7 @@ Add order cancellation for customers
 
 **Good (technical when appropriate):**
 ```
-Upgrade Spring Boot to 3.2
+(refactor) Upgrade Spring Boot to 3.2
 
 - Update dependency and fix deprecated APIs
 - Adjust tests for new validation defaults
@@ -55,3 +82,5 @@ Upgrade Spring Boot to 3.2
 ## Scope
 
 Applies to Git and other VCS. Project-specific conventions (e.g. Conventional Commits) come from the project; this skill encodes the base format and no-AI rule.
+
+**Never commit secrets** (.env, credentials.json, private keys).
