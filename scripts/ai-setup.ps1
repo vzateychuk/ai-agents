@@ -57,3 +57,16 @@ New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.github\agents" -Target 
 New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.github\instructions" -Target "$env:USERPROFILE\.agents\rules" -Force
 New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.github\prompts" -Target "$env:USERPROFILE\.agents\prompts" -Force
 
+# OpenCode
+New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.config\opencode\rules"  -Target "$env:USERPROFILE\.agents\rules"  -Force
+New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.config\opencode\skills" -Target "$env:USERPROFILE\.agents\skills"  -Force
+New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.config\opencode\agents" -Target "$env:USERPROFILE\.agents\agents"  -Force
+New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.config\opencode\commands" -Target "$env:USERPROFILE\.agents\prompts"  -Force
+New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.config\opencode\AGENTS.md" -Target "$env:USERPROFILE\.agents\AGENTS.md" -Force
+
+# PI
+New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.pi\agent\rules"  -Target "$env:USERPROFILE\.agents\rules"  -Force
+New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.pi\agent\skills" -Target "$env:USERPROFILE\.agents\skills"  -Force
+New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.pi\agent\agents" -Target "$env:USERPROFILE\.agents\agents"  -Force
+New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.pi\agent\commands" -Target "$env:USERPROFILE\.agents\prompts"  -Force
+New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.pi\agent\AGENTS.md" -Target "$env:USERPROFILE\.agents\AGENTS.md" -Force
