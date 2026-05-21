@@ -5,147 +5,117 @@ description: >
   Use this skill whenever a user asks to "scan the project", "generate a repo map", "index the
   codebase", "create navigation for the project", or opens a project for the first time and needs
   an orientation file. Also trigger when the user says "update repo_map.md" or mentions that
-  modules, routes, entities, dependencies, or environment variables have changed. This skill
-  produces a token-efficient, evidence-based repo_map.md that serves as a persistent AI navigation
-  index read at the start of every session.
+  modules, routes, entities, dependencies, or environment variables have changed.
 ---
- 
+
 # Repo Map Generator
- 
-Produce or update repo_map.md - a compact AI navigation index for the current project.
-The file is read at the start of every session; optimize for token efficiency.
- 
----
- 
-## Output sizing
- 
-| Project type               | Target lines | Token budget      |
-|----------------------------|--------------|-------------------|
-| Simple (library, CLI)      | 80-140       | ~2000             |
-| Medium (monolith, SPA)     | 140-260      | ~3000             |
-| Complex (microservices)    | 200-400      | ~4000 (hard: 5500)|
- 
----
 
-# Constraints
+Produce or update repo_map.md — a compact AI navigation index for the current project.
+Read at the start of every session; optimize for token efficiency.
 
-- **Adaptive sizing:**
-  - Simple projects (library, CLI, single service): 80-140 lines
-  - Medium projects (monolith, SPA, backend service): 140-260 lines
-  - Complex projects (microservices, enterprise): 200-400 lines
-- **Token budget:** ~2000-4000 tokens (hard limit: 5500)
-- **Format:** Tables over prose. Descriptions max 10 words.
-- **File granularity:** Do NOT list individual files except in KEY_FILES and DEPENDENCIES.
-- **Tree depth:** Max 2 levels (exception: expand one extra level when source root is buried deeper than 2 levels).
-- **Empty sections:** Write (skip - not applicable) for irrelevant sections.
-- **Evidence-based:** Every value must be sourced from actual file reads. No inference, no guessing, no fabrication.
-- **Verify before skip:** Before writing ANY skip marker, you MUST have attempted to read/glob for the relevant files. State which files you checked.
-- **Security:** ENV_CONFIG - record key names and purpose only. NEVER actual values, secrets, connection strings, or tokens. Skip CONFIDENTIAL/INTERNAL files entirely.
+## Adaptive Scanning Mode
+
+Automatically choose scanning depth based on project size:
+
+| Projects | Complexity | Scan depth | Template lines |
+|----------|-----------|------------|----------------|
+| Library, CLI, simple app | Low | 5-7 steps | 80-140 |
+| Monolith, SPA, backend service | Medium | 10-12 steps | 140-260 |
+| Microservices, multi-service | High | 14-16 steps | 200-400 |
+
+Detect project size via: `ls -la`, count of package.json/requirements.txt files, presence of docker-compose.
 
 ---
 
-# Truncation Priority
+## Core Constraints
 
-When approaching token limit (least critical first):
+- **Token budget:** 2000-4000 tokens (hard limit: 5500)
+- **Format:** Tables over prose; descriptions max 10 words
+- **File granularity:** Do NOT list individual files except in KEY_FILES
+- **Tree depth:** Max 2 levels
+- **Security:** ENV_CONFIG records key names & purpose only. NEVER actual values, secrets, tokens
+- **Evidence-based:** Every value from actual file reads. No inference, no fabrication
+
+---
+
+## Base Scanning Steps (all projects)
+
+1. **Detect Stack** — Read build manifest (package.json, pyproject.toml, pom.xml, etc.). Extract: language, framework, build tool, versions (confirmed from manifest, never inferred).
+
+2. **Detect Architecture** — Read directory structure and config files. Write "unknown" if unclear.
+
+3. **Detect Commands** — Read manifest scripts/tasks. List only explicitly declared commands (build, dev, test, lint).
+
+4. **Detect Runtime** — Check Dockerfile, docker-compose.yml, .nvmrc, .python-version. Mandatory: attempt read on all.
+
+5. **Detect Environment** — Scan for process.env, os.environ, dotenv usage. Record: key name, required/optional, purpose (max 8 words). Adaptive limits: microservices max 20, monoliths max 12.
+
+6. **Detect Entrypoints** — Locate startup files (main, app, server, index, bootstrap). Categorize: server, cli, worker, function, script, app, webapp.
+
+7. **Detect Major Modules** — List every discovered directory as a separate row. Priority: Core logic > Infrastructure > API > Tests > Tooling.
+
+8. **Build Directory Tree** — Compact ASCII tree, directories only, depth=2.
+
+## Extended Steps (medium/high complexity projects)
+
+9. **Map Modules to AI Tasks** — Values: API_CHANGES, BUSINESS_LOGIC, DATA_MODELS, FRONTEND, CONFIG, INFRA, SECURITY, TESTS, CLI_AUTOMATION, PLUGIN_EXTENSION, DEV_TOOLING.
+
+10. **Detect Pipeline / Data Flow** — Apply to HTTP services with middleware. Format: FROM -> TO (purpose).
+
+11. **Detect API Surface** — Read controllers/routers. Prepend global path prefix.
+
+12. **Detect Consumed APIs** — HTTP clients and vendor SDKs. Max 10.
+
+13. **Detect Entities** — Traverse models, entities, schemas, types. Max 16 entities.
+
+14. **Detect Dependencies** — Top 8 production dependencies from manifest.
+
+15. **Identify Key Files** — Max 15 critical files (entrypoint, config, schema, etc.).
+
+16. **Detect Conventions** — Read linter/formatter configs. Max 5 rules.
+
+---
+
+## Truncation Priority (when approaching token limit)
+
 1. CONVENTIONS (keep top 5)
 2. FLOWS (keep top 3 flows, max 6 steps each)
 3. FEATURE_MAP (keep top 8)
-4. API_CONSUMED (keep top 8 by priority order)
+4. API_CONSUMED (keep top 8)
 5. DATA_ENTITIES (keep top 10)
 6. DEPENDENCIES (keep top 8)
-7. ENV_CONFIG (apply adaptive limits below)
+7. ENV_CONFIG (apply adaptive limits)
 
 **Never truncate:** PROJECT, COMMANDS, RUNTIME, ENTRYPOINTS, MODULES, KEY_FILES.
 
 ---
 
-# Ignore
+## Ignore Rules
 
-Apply rule scan-ignore. See rules/scan-ignore.md. Skip paths listed there; also respect .gitignore.
-
----
-
-# Scan Steps
-
-## 1. Detect Stack
-Read: Primary build manifest (package.json, pyproject.toml, etc.).
-Extract: Language, framework, build tool, package manager.
-Versions: Read explicitly from manifest - do NOT infer.
-
-## 2. Detect Architecture
-Directory structure + config files. Write unknown if unclear.
-
-## 3. Detect All Commands
-Read build manifest scripts/tasks. List ONLY explicitly declared commands.
-
-## 4. Detect Runtime
-Check Dockerfile, docker-compose.yml, .nvmrc, .python-version, etc.
-Mandatory check: Attempt to read Dockerfile and web server configs.
-
-## 5. Detect Environment Configuration
-Scan for process.env, os.environ, ${NAME}, etc.
-Adaptive limits: Microservices max 20, Monoliths max 12.
-Record: Key name, required/optional, purpose (max 8 words).
-
-## 6. Detect Entrypoints
-Locate startup files (main, app, server, index, bootstrap).
-Categorize: server, cli, worker, function, script, app, webapp.
-
-## 7. Detect Major Modules
-List every discovered directory as a separate row. Do NOT merge packages.
-Priority: Core logic > Infrastructure > API > Tests > Tooling.
-
-## 8. Build Directory Tree
-Format: Compact ASCII tree, directories only, depth=2.
-
-## 9. Map Modules to AI Tasks
-Values: API_CHANGES, BUSINESS_LOGIC, DATA_MODELS, FRONTEND, CONFIG, INFRA, SECURITY, TESTS, CLI_AUTOMATION, PLUGIN_EXTENSION, DEV_TOOLING.
-
-## 10. Detect Pipeline / Data Flow
-Apply to HTTP services with middleware or message processors.
-Format: FROM -> TO (purpose).
-
-## 11. Detect API Surface
-Read controllers/routers. Prepend global path prefix if exists.
-
-## 11a. Detect Consumed APIs
-Scan for HTTP clients and vendor SDKs. Max 10.
-
-## 12. Detect Feature-to-Layer Mapping
-Apply to layered architectures with feature organization.
-
-## 13. Detect Core Domain Abstractions
-Traverse models, entities, schemas, types, interfaces. Max 16 entities.
-
-## 14. Detect Dependencies
-Top 8 production dependencies from manifest.
-
-## 15. Identify Key Files
-Max 15 critical files (entrypoint, deps, config, schema, etc.).
-
-## 16. Detect Conventions
-Read explicit linter/formatter configs and docs. Max 5 rules.
+Apply rule scan-ignore (see rules/scan-ignore.md). Skip: .git, .vscode, node_modules, build/, dist/, target/, .cache, venv/, __pycache__, etc.
+Also respect project .gitignore.
 
 ---
 
-# Output Format
-Create or overwrite repo_map.md in project root. Omit sections marked (skip - not applicable).
+## Output Format
+
+Create or overwrite repo_map.md in project root. Omit sections marked "(skip - not applicable)".
 
 ---
 
-# REPO_MAP Template
+## REPO_MAP Template
 
 ```markdown
 ## PROJECT
 
 | FIELD        | VALUE                              |
-|--------------|------------------------------------|
-| name         |                                    |
-| type         | application \| library \| service  |
-| architecture |                                    |
-| languages    |                                    |
-| frameworks   |                                    |
-| build        |                                    |
+|--------------|-----------------------------------|
+| name         |                                   |
+| type         | application / library / service   |
+| architecture |                                   |
+| languages    |                                   |
+| frameworks   |                                   |
+| build        |                                   |
 
 ---
 
@@ -155,7 +125,90 @@ Create or overwrite repo_map.md in project root. Omit sections marked (skip - no
 |--------|----------------|-------|
 | build  | npm run build  |       |
 | dev    | npm run dev    |       |
+| test   | npm test       |       |
 
 ---
 
 ## STRUCTURE (depth=2)
+
+src/
+  api/
+  services/
+  models/
+  utils/
+
+---
+
+## RUNTIME
+
+| Component     | Version      |
+|---------------|--------------|
+| Node.js       | 20.x (from .nvmrc) |
+| Package Mgr   | npm 10.x     |
+
+---
+
+## ENTRYPOINTS
+
+| Type   | File            | Purpose |
+|--------|-----------------|---------|
+| server | src/index.js    | HTTP server entry |
+| cli    | bin/cli.js      | Command-line interface |
+
+---
+
+## MODULES
+
+| MODULE | PATH | PURPOSE | AI_TASK |
+|--------|------|---------|---------|
+| api | src/api | REST controllers | API_CHANGES |
+| services | src/services | Business logic | BUSINESS_LOGIC |
+| models | src/models | Data models | DATA_MODELS |
+| utils | src/utils | Helpers | DEV_TOOLING |
+
+---
+
+## KEY_FILES
+
+| FILE | PURPOSE |
+|------|---------|
+| package.json | Dependencies, scripts |
+| src/index.js | Server entry point |
+| .env.example | Environment variable template |
+
+---
+
+## DEPENDENCIES (top 8)
+
+| Package | Version | Purpose |
+|---------|---------|---------|
+| express | 4.18 | HTTP framework |
+| postgres | 13.x | Database |
+
+---
+
+## ENV_CONFIG
+
+| Key | Required | Purpose |
+|-----|----------|---------|
+| NODE_ENV | yes | Environment mode |
+| DATABASE_URL | yes | Database connection |
+| LOG_LEVEL | no | Logging verbosity |
+
+---
+
+## API_SURFACE
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | /api/v1/users | List users |
+| POST | /api/v1/users | Create user |
+
+---
+
+## CONVENTIONS
+
+- ESLint: see .eslintrc.js
+- Commit: conventional commits (feat, fix, etc.)
+- Tests: Jest with 80% coverage target
+```

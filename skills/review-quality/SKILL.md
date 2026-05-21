@@ -18,7 +18,7 @@ User triggers:
 | Area | What to check | Tool | Example | 
 |------|---------------|------|---------|
 | Structure | Matches project patterns | eslint, ruff | One class per file? |
-| Code quality | Clean code & smells | code-quality-avoid | No god object, no magic numbers |
+| Code quality | Clean code & smells | manual review | No god object, no magic numbers |
 | Security | Injection risk, hard-coded data | security | Headers, inputs sanitized, no eval |
 | Logic | Edge cases, error handling | debug | Catch empty handlers, null safety |
 | Tests | Coverage → new feature | testing | Unit + integration for new methods |

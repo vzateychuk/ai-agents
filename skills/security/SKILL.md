@@ -15,17 +15,15 @@ User triggers:
 - "add security checklist"
 - "check authN/Z"
 
-## Security checklist (minimal)
-| Area | Check | Tool | Example risk |
-|------|--------|------|------------|
-| Auth | JWT/OAuth exist & enforced | Manual API traces | Missing auth on `/admin` |
-| Headers | Security headers present | `helmet()` (Node) | Missing CORS policy |
-| Inputs | Sanitize & validate all inputs | `zod`, regex, ORM | XSS injection |
-| Secrets | No plaintext in code/env | `dotenv`, Vault | API keys in .env file |
-| Injection | Prepared statements, ORM | SQL literals ❌ | SQLi through `/login?id=1 OR 1=1` |
-| Logs | No PII or tokens dumped | log sanitize filter | SSN in logs |
-| Open redirects | Validate all `returnTo` URLs | Regex whitelist | phishing via `/redirect?to=https://evil.com` |
-| Rate-limiting | Per-user & per-endpoint | `express-rate-limit` | DDoS brute-force |
+## Security checklist (core)
+| Area | Check | Example risk |
+|------|--------|------------|
+| Auth | JWT/OAuth enforced on protected routes | Missing auth on /admin endpoints |
+| Inputs | Sanitize & validate all user input | XSS via unescaped HTML |
+| Secrets | No plaintext credentials in code | API keys hardcoded in files |
+| Injection | Use prepared statements, ORM (no SQL literals) | SQL injection: /login?id=1 OR 1=1 |
+| Headers | Security headers set (CORS, CSP, etc.) | Missing Content-Security-Policy |
+| Logs | Never log PII, tokens, or credentials | SSN or API keys in logs |
 
 ## Review policy
 - ✅ All new PRs ≥ 2 reviewers

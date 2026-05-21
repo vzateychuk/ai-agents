@@ -36,15 +36,13 @@ If A ↔ B (cycle):
 - Extract common contract interface into C → A→C, B→C.
 
 ## Save/restore context
-```yaml
-task: fix 404 fallback handler
-agent: nodejs-ts-ops
-skills_used: [testing, api-design-rest]
-git_branch: feature/404-handler
-next_steps: add tests + update docs
-ts: "2025-05-21T12:00:00Z"
-```
+When pausing work, save essence to `.CURRENT_CONTEXT.md`:
+- task: what needs to be done
+- files_changed: which modules touched
+- tests_status: green or failures to fix
+- next_steps: what comes after
+Example: "Fix 404 handler in api/middleware, add tests, update API docs"
 
 ## Related skills
-- For safe refactoring: `refactor` as part of the skills ecosystem
-- For mono-repo analysis: `analyze-module-dependencies`
+- For code quality review: `review-quality`
+- For testing refactored code: `testing`

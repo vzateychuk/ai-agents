@@ -16,14 +16,13 @@ User triggers:
 - "why are tests failing?"
 
 ## Core tasks
-| Task | How | Tool | Example | Outcome |
-|------|-----|------|---------|---------|
-| Run tests | Read manifest & execute | npm test, pytest, mvn test | `npm test` | List of failed tests |
-| Write unit tests | AAA + external mocks | vitest, Jest, pytest | `test("add adds numbers") { expect(add(1,2)).toBe(3) }` | Logic test ready |
-| Write integration tests | Dependencies ≃ prod | supertest, TestContainers | `supertest(app).get(\`/users\`)` | Verify API contracts |
-| Write E2E tests (seldom) | User journeys | Playwright, Cypress | `playwright("checkout a cart")` | End-to-end test ready |
-| Analyze coverage | Generate coverage report | vitest --coverage, pytest-cov | `npx vitest --coverage` | Surface uncovered paths |
-| Prioritize gaps | entrypoints → biz logic → edge cases | — | `/payment/process` | Top-3 missing functions |
+| Task | How | Example command |
+|------|-----|---------|
+| Run tests | Read manifest, execute | `npm test` or `pytest` |
+| Write unit tests | AAA pattern + mocks | Test single function behavior |
+| Write integration tests | Test with real dependencies | Test API endpoint with DB |
+| Analyze coverage | Generate report | `npm test -- --coverage` |
+| Prioritize gaps | Start with entry points, then business logic | Which functions have no tests? |
 
 ## Correctness verification
 Ask to show a failing test → propose a minimal fix → re-run test.

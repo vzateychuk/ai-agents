@@ -1,6 +1,6 @@
 ---
 name: 'nodejs-ts-ops'
-description: 'Набор инструментов для работы с FS, npm/pnpm workspaces, запуска Vitest, Playwright и линтеров.'
+description: 'Node.js/TypeScript operations: filesystem, npm/pnpm workspaces, Vitest, Playwright, linting.'
 ---
 
 # Skill: Node.js/TypeScript Operations
