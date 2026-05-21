@@ -1,7 +1,21 @@
 ---
 name: testing
-description: Run tests and write coverage. Analyze reports and surface gaps. Applies to any stack.
+description: Write tests, run test suites, and analyze coverage. Use when user asks to write tests, check coverage, or understand what is tested. Do NOT use for debugging failing tests (bugs in code) — use debug skill for that. Applies to any stack.
 ---
+
+## Scope
+
+**This skill handles:**
+- Writing new tests (unit, integration, E2E)
+- Running test suites and analyzing coverage
+- Test planning and design
+- Coverage gap analysis and recommendations
+- Proactive test improvements and maintenance
+
+**This skill does NOT handle:**
+- Debugging failing tests or investigating bugs (use **debug** skill)
+- Runtime errors in production code (use **debug** skill)
+- General code review (use **review-quality** skill)
 
 ## Purpose
 - Run all test types (unit, integration, E2E).

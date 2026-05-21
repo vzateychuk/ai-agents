@@ -1,7 +1,22 @@
 ---
 name: review-quality
-description: Code and quality review (any stack). Finds technical defects and violations of project style and conventions.
+description: Code and quality review (any stack). Finds technical defects, logic errors, anti-patterns, architecture violations, and style/convention breaches. Focus: code structure, readability, maintainability, testing. Do NOT focus on security issues — use security skill for auth, secrets, injection, data leaks.
 ---
+
+## Scope
+
+**This skill handles:**
+- Code structure, architecture, and design patterns
+- Logic errors and anti-patterns
+- Style and convention violations
+- Test coverage and testing approach
+- Readability and maintainability
+- Refactoring opportunities
+
+**This skill does NOT handle:**
+- Security issues (auth, secrets, injection) — use **security** skill
+- Runtime debugging and exceptions — use **debug** skill
+- Writing new tests — use **testing** skill
 
 ## Purpose
 - Validate correctness, security, readability, and test coverage.

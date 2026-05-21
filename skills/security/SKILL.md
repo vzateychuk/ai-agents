@@ -1,7 +1,22 @@
 ---
 name: security
-description: Review and harden applications and APIs for security risks: authN/Z, secrets, input validation, injection, data leaks.
+description: Review and harden applications and APIs for security risks only: authentication, authorization, hardcoded secrets, input validation, SQL/command injection, data leaks, open redirects, CSRF. Do NOT use for general code quality, style, architecture, or logic review — use review-quality skill for that. Applies to any stack.
 ---
+
+## Scope
+
+**This skill handles:**
+- Authentication and authorization (JWT, OAuth, Spring Security, etc.)
+- Hardcoded secrets and credential management
+- Input validation and injection risks (SQL, command, XSS)
+- Data leakage and PII exposure
+- Open redirects and CSRF protection
+- Secure headers and encryption
+
+**This skill does NOT handle:**
+- Code quality, style, architecture (use **review-quality** skill)
+- Logic errors and testing approaches (use **review-quality** or **testing** skill)
+- Runtime debugging (use **debug** skill)
 
 ## Purpose
 - Security review for code, APIs, apps.

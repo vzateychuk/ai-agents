@@ -1,9 +1,24 @@
 ---
 name: debug
-description: Debug failing code, tests, or runtime errors. Use when the user reports an error, exception, unexpected behavior, or test failure, or asks to investigate an issue. Applies to any stack; framework-specific signals come from the active agent.
+description: Debug failing code, runtime errors, exceptions, and unexpected behavior. Use when the user reports an error, exception in running code, or asks to investigate a bug. Do NOT use for "write tests" or test coverage analysis — those are testing skill. Applies to any stack.
 ---
 
 # Debug
+
+## Scope
+
+**This skill handles:**
+- Runtime errors, exceptions, and crashes
+- Unexpected behavior in running code
+- Bugs reported during execution
+- Intermittent test failures (flaky tests in CI or runtime)
+
+**This skill does NOT handle:**
+- Writing new tests (use **testing** skill)
+- Test design or coverage (use **testing** skill)
+- Proactive test improvements (use **testing** skill)
+
+---
 
 ## Process
 
