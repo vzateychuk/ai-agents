@@ -49,7 +49,17 @@ When a test passes locally but fails in CI, or fails inconsistently across runs:
 
 Do not assume a race condition in production code until test isolation issues are ruled out.
 
-## Scope
+## When to use
+
+User triggers:
+- "test is failing", "test failed", "why did my test fail?"
+- "exception in my test", "error when running tests"
+- "flaky test", "test passes locally but fails in CI"
+- "debug this bug", "why is this broken?"
+
+**NOT for:** "write tests" or "analyze coverage" (use **testing** skill for those)
+
+---
 
 Framework-specific signals and tooling come from the active agent.
 This skill defines the process only.

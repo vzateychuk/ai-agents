@@ -27,7 +27,10 @@ User triggers:
 - "write tests for module X"
 - "run tests"
 - "what is covered by tests?"
-- "why are tests failing?"
+- "analyze test coverage"
+- "which functions need tests?"
+
+(For "why are tests failing?" → use **debug** skill, not this one)
 
 ## Core tasks
 | Task | How | Example command |
