@@ -1,86 +1,89 @@
 ---
 name: commit-message
-description: Write clear, conventional commit message  from diff. Use when the user asks for a commit message, commit comment, or to summarize changes for a commit. Applies to any project and VCS.
+description: |-
+  Auto-generate a clear, conventional commit message from diff or user request.
+  Triggers on any "make a commit", "push", or similar user requests even if they don’t say
+  "write commit message". Applies to any project and VCS.
 license: MIT
 allowed-tools: Bash
 ---
 
-# Commit Message
+# Commit Message — Auto-generation
 
 ## Rules
+- Follow **git-commits-message** rule: no AI mentions, imperative mood, first line <= 50 chars, body wrapped at 72 chars.
+- Focus on **WHAT** and **WHY** (business intent), not **HOW** (implementation).
+- Reference issue-ID when applicable.
 
-Apply **git-commits-message** rule: no AI mentions, imperative mood, summary 50 chars or less, body wrap at 72 chars. Focus on WHAT and WHY, not HOW. Reference issue numbers when applicable.
+## Triggers (auto-detect)
+- User request contains any of:
+  – «make a commit», «commit that», «push these changes», «can you commit?», «let's commit», «git push»
+  – «write commit message», «what should the commit say?», «summarize my changes»
+- Context contains mentions of: git, commit, push, diff, changes, modified files, VCS
+- A diff, staged files, or `git status` is provided showing actual changes.
 
-## Process
-
-1. **Identify changes** — from the provided diff, staged files, or user description; do not infer changes if unclear.
-2. **Draft summary line** — one sentence in imperative mood, under 50 characters.
-3. **Draft body** — bullet points, each starting with a verb (Add, Update, Fix, Remove, etc.); wrap at 72 characters.
-4. **Verify** — no AI mentions; technical and neutral.
+## Process (executes on every trigger)
+1. **Identify changes**: from diff / staged files / `git status`; do not infer if unclear.
+2. **Draft summary**: one imperative line, ≤ 50 chars.
+3. **Draft body**: bullet points with verbs (Add, Update, Fix, Remove, Refactor, etc.); wrap at 72 chars.
+4. **Verify**: no AI mention; keep tone technical and neutral.
 
 ## Style
-
-- **Brief** — keep the message concise; avoid long explanatory text unless necessary.
-- **Business- and task-oriented** — when possible, describe changes from the business goal or task perspective rather than purely technical detail. Prefer "Add order cancellation for customers" over "Add cancelOrder() to OrderService"; prefer "Fix checkout total when discount applied" over "Fix BigDecimal rounding in calculateTotal". If the change is purely technical (refactor, dependency upgrade), technical wording is acceptable.
-
-## 3. Generate Commit Message
-
-Analyze the diff to determine:
-
-- **Type**: What kind of change is this?
-- **Scope**: What area/module is affected?
-- **Description**: One-line summary of what changed (present tense, imperative mood, <72 chars)
+- **Be brief**: avoid filler; keep to the essential.
+- **Business-oriented wording**: describe change by intended outcome, not implementation:
+  ✅ (feat) Add user address deletion
+  ❌ (refactor) Extract `deleteAddress()` to service
+- Technical wording allowed only for mechanical changes (renames, deps).
 
 ## Conventional Commit Format
-
 ```
-(<type>) [commit-message]
-
-[optional body: Bullet points (what and why)]
-
-[optional footer(s)]
+(<type>) [description]
+[body: bullet points (what & why)]
+[footer: issue refs]
 ```
 
 ## Commit Types
-
-| Type       | Purpose                        |
-| ---------- | ------------------------------ |
-| `feat`     | New feature                    |
-| `fix`      | Bug fix                        |
-| `docs`     | Documentation only             |
-| `style`    | Formatting/style (no logic)    |
-| `refactor` | Code refactor (no feature/fix) |
-| `perf`     | Performance improvement        |
-| `test`     | Add/update tests               |
-| `build`    | Build system/dependencies      |
-| `ci`       | CI/config changes              |
-| `chore`    | Maintenance/misc               |
-| `revert`   | Revert commit                  |
-
+| Type | Purpose | Example |
+|------|---------|--------|
+| `feat` | New feature / significant functionality | `feat(api): add /users` |
+| `fix` | Bug fix | `fix(ui): cancel button froze on click` |
+| `docs` | Documentation only | `docs(readme): correct install link` |
+| `style` | Formatting / style (no logic change) | `style(ts): reformat braces` |
+| `refactor` | Code restructure w/o behavior change | `refactor(payments): move logic to service` |
+| `perf` | Performance improvement | `perf(sql): add index to orders` |
+| `test` | Add / update tests | `test(auth): add reset flow` |
+| `build` | Build, deps | `build(deps): update ruff` |
+| `ci` | CI / CD configs | `ci(gha): bump node to 20` |
+| `chore` | Maintenance, cosmetics | `chore(skills): merge redundant folders` |
+| `revert` | Undo commit | `revert: "feat(orders): add /cart"` |
 
 ## Examples
-
-**Good (business-oriented):**
+**Business standpoint:**
 ```
-(feat) Add order cancellation for customers
-
-- Add cancel endpoint with validation of order state
-- Update order status flow to support cancelled
-- Extend API contract for cancellation reason
-```
-
-**Good (technical when appropriate):**
-```
-(refactor) Upgrade Spring Boot to 3.2
-
-- Update dependency and fix deprecated APIs
-- Adjust tests for new validation defaults
+(feat) Add customer review moderation tool
+- Introduce ReviewModerator service
+- Scan /reviews endpoint with moderation rule
+- Store status in DB, expose in admin panel
+Closes #42
 ```
 
-**Bad:** "Fixed stuff", "Generated with Claude", Co-Authored-By, emoji.
+**Mechanical change:**
+```
+(chore) Upgrade Playwright 1.47
+- Update /test dependency
+- Fix port leak in e2e suite
+```
+
+**Bad:**
+```
+Fixed stuff and updated some files🎉
+Generaged by Clawdo
+Co-authored-by: AI
+```
 
 ## Scope
+Applies to Git and any other VCS. Project-specific conventions (e.g., Conventional Commits) may override base rules.
 
-Applies to Git and other VCS. Project-specific conventions (e.g. Conventional Commits) come from the project; this skill encodes the base format and no-AI rule.
-
-**Never commit secrets** (.env, credentials.json, private keys).
+**Security note:**
+- ❌ Never commit secrets (.env, credentials.json, private keys)
+- ❌ Use CI-friendly variables when sensible.
