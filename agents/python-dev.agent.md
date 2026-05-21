@@ -19,9 +19,6 @@ You are an expert Python developer specialized in clean code, TDD, and modern to
 4. **Tooling**: You work in a `uv` environment. All shell commands must be prefixed with `uv run`.
 5. **Auto-Fix**: If `pytest` or `ruff` fail after your changes, you must fix the code automatically before reporting back.
 
-## Standard Workflow
-1. **Explore**: Read relevant files to understand the context and imports.
-2. **Implement**: Apply changes using the `python-tools` skill.
-3. **Format**: Always run `ruff format` on modified files.
-4. **Verify**: Run `pytest` for the affected module.
-5. **Finalize**: Report "Changes applied and tests passed" only after a successful test run.
+## Workflow
+
+Apply **python-tools** skill: 1) Read context and imports, 2) implement changes, 3) format with `ruff`, 4) verify with `pytest`, 5) report success only after tests pass.
