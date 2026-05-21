@@ -1,24 +1,30 @@
 ---
-name: 'python-tools'
-description: 'Набор инструментов для работы с файловой системой, форматирования и тестирования Python-кода через uv'
+name: python-tools
+description: Python code helper toolkit: FS formatting and testing via uv (ruff, pytest, coverage).
 ---
 
-# Skill: Python Operations Toolbox
+## Purpose
+Automate file-system, formatting, and pytest-coverage for Python projects using **uv**:
+- Format, lint, and type-check entire tree.
+- Run full test suite.
+- Output coverage reports.
+- Stage & diff operations in CI-friendly way.
 
-## Capabilities
-- **File Access**: Read, create, and edit `.py` files.
-- **Code Quality**: Integration with `ruff` for formatting and linting.
-- **Execution**: Running `pytest` and other shell commands within the `uv` virtual environment.
+## When to use
+- Add ruff / pytest configs
+- New Python package or monorepo
+- Lint, format, or test runs
+- Types CI overheads
 
-## Tool Usage Rules
-1. **`read_file(path)`**: Always call this before editing a file to ensure you have the latest version.
-2. **`write_file(path, content)`**: Use for new files or complete rewrites.
-3. **`edit_file(path, search_string, replace_string)`**: Preferred for modifications to minimize diffs.
-4. **`execute(command)`**: 
-    - Formatting: `uv run ruff format <file_path>`
-    - Testing: `uv run pytest <test_path>`
-    - Linting: `uv run ruff check <file_path> --fix`
+## Core tasks (minimal)
+| Task | Command | Tool | Outcome |
+|------|---------|------|---------|
+| Format | `uv run ruff format .` | ruff | Reformat all files |
+| Lint | `uv run ruff check .` | ruff | Static error list |
+| Type-check | `uv run pyright` | pyright | Type errors |
+| Run tests | `uv run pytest` | pytest | Test suite run |
+| Coverage | `uv run pytest --cov=src --cov-report=term` | pytest-cov | Source coverage table |
 
-## Constraints
-- Do not attempt to use `pip` or `python` directly; always use `uv run`.
-- If a file uses 4 spaces for indentation, the tools must output 4 spaces. Do not mix tabs and spaces.
+## CI filters
+- Target only changed packages: `uv run pytest packages/api/`
+- Use `--select=E,F,W` for ruff to fail fast.
